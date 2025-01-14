@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.ruby-lsp": true,
+        "**/.ruff_cache": true,
+    },
+    "python.languageServer": "Pylance",
+    "ruff.nativeServer": "on",
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "charliermarsh.ruff",
+    },
+    "pylint.enabled": false,
+    "mypy.enabled": true
+}
