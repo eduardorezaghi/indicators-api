@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Flask",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.main",
+            "env": {
+                "FLASK_APP": "src.main",
+                "FLASK_ENV": "development"
+            },
+            "args": [
+                "run",
+                "--host=0.0.0.0",
+                "--port=7012"
+            ],
+            "jinja": true
+        }
+    ]
+}
