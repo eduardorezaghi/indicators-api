@@ -7,7 +7,7 @@ from src.database import default_db
 from src.models.base_model import BaseModel
 
 
-class Person(BaseModel, default_db.Model): # mypy: ignore
+class Person(BaseModel, default_db.Model):  # mypy: ignore
     __tablename__ = "person"
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)

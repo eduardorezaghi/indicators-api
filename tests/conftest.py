@@ -3,16 +3,23 @@ from typing import Generator
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-from sqlalchemy import Engine, create_engine
+from flask_sqlalchemy import SQLAlchemy
 
 from src.config import Settings
 from src.database import destroy_db, init_db
 from src.main import create_app
 
 test_settings = Settings(
-    DATABASE="sqlite:///:memory:",
+    SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
     TESTING=True,
 )
+
+
+@pytest.fixture(scope="session")
+def test_db() -> SQLAlchemy:
+    return SQLAlchemy(
+        engine_options={"echo": test_settings.DB_ECHO_LOG},
+    )
 
 
 class CustomClient(FlaskClient):
@@ -21,25 +28,16 @@ class CustomClient(FlaskClient):
         return super().open(*args, **kwargs)
 
 
-@pytest.fixture(scope="session")
-def sqlalchemy_custom_engine() -> Generator[Engine, None, None]:
-    engine = create_engine(
-        test_settings.DATABASE,
-        echo=test_settings.DB_ECHO_LOG,
-    )
-
-    yield engine
-
-
 @pytest.fixture(scope="session", autouse=True)
-def app(sqlalchemy_custom_engine: Engine) -> Generator[Flask, None, None]:
-    app = create_app(test_settings)
+def app(test_db: SQLAlchemy) -> Generator[Flask, None, None]:
+    app = create_app(settings_dict=test_settings, db=test_db)
 
-    init_db(engine=sqlalchemy_custom_engine)
-    # Custom test client with default content type set to application/json.
-    app.test_client_class = CustomClient
-    yield app
-    destroy_db(engine=sqlalchemy_custom_engine)
+    with app.app_context():
+        init_db(test_db)
+        # Custom test client with default content type set to application/json.
+        app.test_client_class = CustomClient
+        yield app
+        destroy_db(test_db)
 
 
 @pytest.fixture
