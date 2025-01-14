@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import click
 from flask import g  # for managing db session context.
-from sqlalchemy import create_engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import DeclarativeBase, scoped_session, sessionmaker
 
 from .config import settings
@@ -48,13 +48,14 @@ def close_db(e: Optional[Exception] = None) -> None:
         db.close()
 
 
-def init_db() -> None:
+# Inject a custom engine, if passed (mainly used in tests).
+def init_db(engine: Engine = engine) -> None:
     from src.models import Person  # noqa
 
     Base.metadata.create_all(bind=engine)
 
 
-def destroy_db() -> None:
+def destroy_db(engine: Engine = engine) -> None:
     Base.metadata.drop_all(bind=engine)
 
 
