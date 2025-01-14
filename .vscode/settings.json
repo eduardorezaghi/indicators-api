@@ -16,5 +16,10 @@
       "editor.defaultFormatter": "charliermarsh.ruff",
     },
     "pylint.enabled": false,
-    "mypy.enabled": true
+    "mypy.enabled": true,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
