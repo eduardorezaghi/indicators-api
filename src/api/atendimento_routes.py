@@ -10,32 +10,43 @@ bp = Blueprint("atendimento", __name__)
 # atendimento_service = AtendimentoService()
 
 atendimentos: list[AtendimentoDT] = []
+errors: list[str] = []
 
 
 @bp.route("/import_csv", methods=["POST"])
 async def import_csv() -> Any:
-    if "file" not in request.files:
+    if "file" not in request.files and not request.data:
         return jsonify({"error": "No file part"}), 400
 
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    file = request.files.get("file")
+    if file:
+        if file.filename == "":
+            return jsonify({"error": "No selected file"}), 400
 
-    if file and file.filename.endswith(".csv"):
-        decoded_stream = StringIO(file.stream.read().decode("UTF-8"))
-        csv_input = csv.DictReader(decoded_stream, delimiter="\t")
+        file_content = file.stream.read().decode("UTF-8")
+    else:
+        file_content = request.data.decode("UTF-8")
+
+    if not file_content:
+        return jsonify({"error": "Empty file"}), 400
+
+    with StringIO(file_content) as decoded_stream:
+        sample = decoded_stream.read(1024)
+        decoded_stream.seek(0)
+        sniffer = csv.Sniffer()
+        dialect = sniffer.sniff(sample)
+        decoded_stream.seek(0)
+        
+        csv_input = csv.DictReader(decoded_stream, delimiter=dialect.delimiter)
 
         atendimentos.clear()
-        for row in csv_input:
-            obj = AtendimentoDT.from_dict(row)
-            # atendimento = Atendimento(
-            #     id=obj.id_atendimento,
-            #     id_cliente=obj.id_cliente,
-            #     angel=obj.angel,
-            #     polo=obj.polo,
-            #     data_limite=obj.data_limite,
-            #     data_de_atendimento=obj.data_de_atendimento,
-            # )
+        errors.clear()
+        for line_number, row in enumerate(csv_input, start=2):
+            try:
+                obj = AtendimentoDT.from_dict(row)
+            except Exception as e:
+                errors.append(f"Invalid CSV file at line {line_number}: {e}")
+                continue
             atendimentos.append(obj)
 
         # await atendimento_service.create(atendimentos)
@@ -43,7 +54,6 @@ async def import_csv() -> Any:
             {
                 "message": "CSV file imported successfully",
                 "data": [atendimento.__dict__ for atendimento in atendimentos],
+                "errors": errors,
             }
         ), 200
-
-    return jsonify({"error": "Invalid file format"}), 400
