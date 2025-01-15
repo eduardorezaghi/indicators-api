@@ -8,6 +8,7 @@
         "**/Thumbs.db": true,
         "**/.ruby-lsp": true,
         "**/.ruff_cache": true,
+        ".pytest_cache": true,
     },
     "python.languageServer": "Pylance",
     "ruff.nativeServer": "on",
