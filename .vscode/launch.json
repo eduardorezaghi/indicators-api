@@ -8,7 +8,8 @@
             "module": "src.main",
             "env": {
                 "FLASK_APP": "src.main",
-                "FLASK_ENV": "development"
+                "FLASK_ENV": "development",
+                "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://postgres:postgres@localhost/indicators",
             },
             "args": [
                 "run",
