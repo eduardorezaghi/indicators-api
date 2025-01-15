@@ -7,7 +7,8 @@ class Settings(BaseSettings):
 
     SQLALCHEMY_DATABASE_URI: str = os.getenv("SQLALCHEMY_DATABASE_URI", "postgresql+psycopg://postgres:postgres@database/indicators")
     API_V1_PREFIX: str = "/api/v1"
-    DB_ECHO_LOG: bool = True
+    DB_ECHO_LOG: bool = False
+    FLASK_RUN_HOST: str = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
     PORT: int = 7012
     DEBUG: bool = True
     TESTING: bool = False

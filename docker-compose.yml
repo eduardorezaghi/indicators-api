@@ -6,7 +6,10 @@ services:
     environment:
       - FLASK_APP=src.main
       - FLASK_ENV=development
+      - FLASK_RUN_HOST=0.0.0.0
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
+    ports:
+      - "7012:7012"
     expose:
       - 7012
     networks:
