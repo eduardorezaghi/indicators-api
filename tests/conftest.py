@@ -1,6 +1,7 @@
 from typing import Generator
 
 import pytest
+from dotenv import load_dotenv
 from flask import Flask
 from flask.testing import FlaskClient
 from flask_sqlalchemy import SQLAlchemy
@@ -8,6 +9,9 @@ from flask_sqlalchemy import SQLAlchemy
 from src.config import Settings
 from src.database import destroy_db, init_db
 from src.main import create_app
+
+load_dotenv()
+
 
 test_settings = Settings(
     SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
@@ -28,6 +32,11 @@ class CustomClient(FlaskClient):
         return super().open(*args, **kwargs)
 
 
+@pytest.fixture(scope="session")
+def default_app() -> Flask:
+    return create_app()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def app(test_db: SQLAlchemy) -> Generator[Flask, None, None]:
     app = create_app(settings_dict=test_settings, db=test_db)
@@ -41,10 +50,10 @@ def app(test_db: SQLAlchemy) -> Generator[Flask, None, None]:
 
 
 @pytest.fixture
-def client(app: Flask) -> Flask.test_client:
+def client(app: Flask) -> Flask.test_client:  # type: ignore
     return app.test_client()
 
 
 @pytest.fixture
-def runner(app: Flask) -> Flask.test_cli_runner:
+def runner(app: Flask) -> Flask.test_cli_runner:  # type: ignore
     return app.test_cli_runner()
