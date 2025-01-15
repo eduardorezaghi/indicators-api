@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from dateutil.parser import parse
+
 
 @dataclass
 class Atendimento:
@@ -13,11 +15,14 @@ class Atendimento:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Atendimento":
+        def handle_date(date: str) -> datetime:
+            return parse(date)  # type: ignore
+
         return cls(
             id_atendimento=int(data["id_atendimento"]),
             id_cliente=int(data["id_cliente"]),
             angel=data["angel"],
             polo=data["polo"],
-            data_limite=datetime.strptime(data["data_limite"], "%d/%m/%Y"),
-            data_de_atendimento=datetime.strptime(data["data_de_atendimento"], "%Y-%m-%d %H:%M:%S"),
+            data_limite=handle_date(data["data_limite"]),
+            data_de_atendimento=handle_date(data["data_de_atendimento"]),
         )
