@@ -1,10 +1,9 @@
-from typing import Any
 
 from flask import Flask
 from flask_alembic import Alembic
 from flask_sqlalchemy import SQLAlchemy
 
-from src.api import base_routes
+from src.api import atendimento_routes, base_routes
 from src.database import default_db, init_db
 
 from .config import Settings, settings
@@ -28,6 +27,9 @@ def create_app(
 
     # Blueprints (routes)
     app.register_blueprint(base_routes)
+    app.register_blueprint(
+        atendimento_routes, url_prefix=f"{settings_dict.API_V1_PREFIX}/atendimento"
+    )
 
     return app
 
@@ -40,4 +42,8 @@ if __name__ == "__main__":
     with app.app_context():
         init_db(db=default_db)
 
-    app.run(port=settings.PORT, debug=settings.DEBUG)
+    app.run(
+        host=settings.FLASK_RUN_HOST,
+        port=settings.PORT,
+        debug=settings.DEBUG,
+    )
