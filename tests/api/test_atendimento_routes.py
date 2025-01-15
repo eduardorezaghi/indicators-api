@@ -9,6 +9,44 @@ from src.api.atendimento_routes import atendimentos
 
 
 class TestAtendimentoRoutes:
+    def test_query_all_atendimentos(self, client, seed_atendimentos):
+        response = client.get("/api/v1/atendimento")
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.OK
+        assert len(json_response.get("data")) == 2
+
+    def test_query_all_atendimentos_with_pagination(self, client, seed_atendimentos):
+        response = client.get("/api/v1/atendimento?page=1&per_page=1")
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.OK
+        assert len(json_response.get("data")) == 1
+
+    def test_query_all_atendimentos_with_invalid_order_by(
+        self, client, seed_atendimentos
+    ):
+        response = client.get("/api/v1/atendimento?order_by=invalid")
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.BAD_REQUEST
+        assert (
+            json_response.get("error")
+            == "order_by_param must be one of ['id', 'created_at', 'updated_at', 'id_cliente', 'angel', 'polo', 'data_limite', 'data_de_atendimento']"
+        )
+
+    def test_query_all_atendimentos_shouldnt_return_deleted_at_items(
+        self, client, seed_atendimentos
+    ):
+        seed_atendimentos[0].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
+        seed_atendimentos[1].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
+
+        response = client.get("/api/v1/atendimento")
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.OK
+        assert len(json_response.get("data")) == 0
+
     def test_import_csv_no_file(self, client):
         response = client.post("/api/v1/atendimento/import_csv")
         assert response.status_code == 400

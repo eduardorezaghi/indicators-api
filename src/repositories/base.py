@@ -10,7 +10,9 @@ class BaseRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def get_all(self) -> list[T]:
+    async def get_paginated(
+        self, page: int, per_page: int, order_by_param: str
+    ) -> list[T]:
         pass
 
     @abstractmethod

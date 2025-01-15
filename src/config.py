@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     PORT: int = 7012
     DEBUG: bool = True
     TESTING: bool = False
+    DEFAULT_PAGE_SIZE: int = 10
     # DB_POOL_SIZE: int = 5
     # DB_MAX_OVERFLOW: int = 10
     # DB_POOL_TIMEOUT: int = 30

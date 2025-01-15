@@ -4,6 +4,7 @@ import pytest
 from dotenv import load_dotenv
 from flask import Flask
 from flask.testing import FlaskClient
+from sqlalchemy.orm import Session
 
 from src.config import Settings
 from src.database import destroy_db, init_db
@@ -29,7 +30,7 @@ def default_app() -> Flask:
     return create_app()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def app() -> Generator[Flask, None, None]:
     app = create_app(settings_dict=test_settings)
 
@@ -39,6 +40,18 @@ def app() -> Generator[Flask, None, None]:
         app.test_client_class = CustomClient
         yield app
         destroy_db()
+
+
+@pytest.fixture
+def session() -> Generator[Session, None, None]:
+    from src.database import default_db as db
+
+    init_db(db)
+    session = db.session
+    yield session
+    destroy_db(db)
+    session.rollback()
+    session.close()
 
 
 @pytest.fixture

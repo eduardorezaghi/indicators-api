@@ -2,15 +2,62 @@ import csv
 from io import StringIO
 from typing import Any
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, url_for
 
 from src.domain import Atendimento as AtendimentoDT
+from src.schemas import AtendimentoSchema
+from src.services.atendimento_service import AtendimentoService
 
 bp = Blueprint("atendimento", __name__)
-# atendimento_service = AtendimentoService()
 
 atendimentos: list[AtendimentoDT] = []
 errors: list[str] = []
+
+@bp.route("", methods=["GET"])
+async def get_all() -> Any:
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=10, type=int)
+    order_by_param = request.args.get("order_by", default="id", type=str)
+
+    atendimento_service = AtendimentoService()
+    try:
+        atendimentos = await atendimento_service.get_all(page, per_page, order_by_param)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    next_page = (
+        url_for(
+            "atendimento.get_all",
+            page=page + 1,
+            per_page=per_page,
+            order_by=order_by_param,
+        )
+        if len(atendimentos) == per_page
+        else None
+    )
+    prev_page = (
+        url_for(
+            "atendimento.get_all",
+            page=page - 1,
+            per_page=per_page,
+            order_by=order_by_param,
+        )
+        if page > 1
+        else None
+    )
+
+    dump_items = [
+        AtendimentoSchema.model_validate(atendimento) for atendimento in atendimentos
+    ]
+    serialized_items = [item.model_dump() for item in dump_items]
+
+    return jsonify(
+        {
+            "data": serialized_items,
+            "next": next_page,
+            "prev": prev_page,
+        }
+    )
 
 
 @bp.route("/import_csv", methods=["POST"])
