@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Generator
 
 import pytest
@@ -62,3 +63,66 @@ def client(app: Flask) -> Flask.test_client:  # type: ignore
 @pytest.fixture
 def runner(app: Flask) -> Flask.test_cli_runner:  # type: ignore
     return app.test_cli_runner()
+
+
+@pytest.fixture
+def angel_fixture(session: Session) -> Generator:
+    from src.models import Angel
+
+    angel = Angel(name="John Doe")
+    session.add(angel)
+    session.commit()
+
+    return angel
+
+
+@pytest.fixture
+def polo_fixture(session: Session) -> Generator:
+    from src.models import Polo
+
+    polo = Polo(name="SP - SÃO PAULO")
+    session.add(polo)
+    session.commit()
+
+    return polo
+
+
+@pytest.fixture
+def client_fixture(session: Session) -> Generator:
+    from src.models import Client
+
+    client = Client(id=123456)
+    session.add(client)
+    session.commit()
+
+    return client
+
+
+# mypy: ignore-errors
+@pytest.fixture
+def atendimentos_fixture(
+    session: Session, angel_fixture, polo_fixture, client_fixture
+) -> Generator:
+    from src.models import Delivery
+
+    atendimentos = [
+        Delivery(
+            cliente=client_fixture,
+            angel=angel_fixture,
+            polo=polo_fixture,
+            data_limite=datetime(2024, 6, 30),
+            data_de_atendimento=datetime(2024, 6, 29, 9, 9, 30),
+        ),
+        Delivery(
+            cliente=client_fixture,
+            angel=angel_fixture,
+            polo=polo_fixture,
+            data_limite=datetime(2024, 6, 30),
+            data_de_atendimento=datetime(2024, 6, 29, 9, 9, 30),
+        ),
+    ]
+
+    session.add_all(atendimentos)
+    session.commit()
+
+    return atendimentos
