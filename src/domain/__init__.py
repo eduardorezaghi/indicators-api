@@ -1,1 +1,1 @@
-from .atendimento import Atendimento # noqa
+from .atendimento import Delivery  # noqa
