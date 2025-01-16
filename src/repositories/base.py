@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
 
 class BaseRepository(ABC, Generic[T]):
+    @abstractmethod
+    async def get_by_attribute(self, attribute: Any) -> T | None:
+        pass
+    
     @abstractmethod
     async def get_by_id(self, id: int) -> T | None:
         pass
