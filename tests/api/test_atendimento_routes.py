@@ -2,21 +2,25 @@
 
 import http
 import io
+from datetime import datetime
 
 import pytest
 
 from src.api.atendimento_routes import atendimentos
+from src.models import Delivery
 
 
 class TestAtendimentoRoutes:
-    def test_query_all_atendimentos(self, client, seed_atendimentos):
+    def test_query_all_atendimentos(self, client, atendimentos_fixture: list[Delivery]):
         response = client.get("/api/v1/atendimento")
         json_response = response.json
 
         assert response.status_code == http.HTTPStatus.OK
         assert len(json_response.get("data")) == 2
 
-    def test_query_all_atendimentos_with_pagination(self, client, seed_atendimentos):
+    def test_query_all_atendimentos_with_pagination(
+        self, client, atendimentos_fixture: list[Delivery]
+    ):
         response = client.get("/api/v1/atendimento?page=1&per_page=1")
         json_response = response.json
 
@@ -24,7 +28,7 @@ class TestAtendimentoRoutes:
         assert len(json_response.get("data")) == 1
 
     def test_query_all_atendimentos_with_invalid_order_by(
-        self, client, seed_atendimentos
+        self, client, atendimentos_fixture: list[Delivery]
     ):
         response = client.get("/api/v1/atendimento?order_by=invalid")
         json_response = response.json
@@ -36,10 +40,10 @@ class TestAtendimentoRoutes:
         )
 
     def test_query_all_atendimentos_shouldnt_return_deleted_at_items(
-        self, client, seed_atendimentos
+        self, client, atendimentos_fixture: list[Delivery]
     ):
-        seed_atendimentos[0].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
-        seed_atendimentos[1].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
+        atendimentos_fixture[0].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
+        atendimentos_fixture[1].deleted_at = datetime(2021, 6, 29, 0, 0, 0)
 
         response = client.get("/api/v1/atendimento")
         json_response = response.json
