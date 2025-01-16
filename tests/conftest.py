@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from src.config import Settings
 from src.database import destroy_db, init_db
-from src.main import create_app
+from src.app import create_app
 
 load_dotenv()
 

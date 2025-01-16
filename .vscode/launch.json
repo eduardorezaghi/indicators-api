@@ -5,9 +5,9 @@
             "name": "Python: Flask",
             "type": "debugpy",
             "request": "launch",
-            "module": "src.main",
+            "module": "src.app",
             "env": {
-                "FLASK_APP": "src.main",
+                "FLASK_APP": "src.app",
                 "FLASK_ENV": "development",
                 "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://postgres:postgres@localhost/indicators",
             },
@@ -17,6 +17,27 @@
                 "--port=7012"
             ],
             "jinja": true
+        },
+        {
+            "name": "Python Celery (Flask)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "CELERY_BROKER_URL": "redis://localhost:6379/0",
+                "CELERY_RESULT_BACKEND": "redis://localhost:6379/0",
+                "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://postgres:postgres@localhost/indicators",
+            },
+            "args": [
+                "-A",
+                "src.app.celery",
+                "worker",
+                "--loglevel",
+                "INFO",
+                "--concurrency",
+                "1"
+            ]
         }
     ]
 }
