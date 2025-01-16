@@ -4,14 +4,15 @@ from typing import Any
 
 from flask import Blueprint, jsonify, request, url_for
 
-from src.domain import Atendimento as AtendimentoDT
+from src.domain import Delivery as DeliveryDT
 from src.schemas import AtendimentoSchema
-from src.services.atendimento_service import AtendimentoService
+from src.services.atendimento_service import DeliveryService
 
 bp = Blueprint("atendimento", __name__)
 
-atendimentos: list[AtendimentoDT] = []
+atendimentos: list[DeliveryDT] = []
 errors: list[str] = []
+
 
 @bp.route("", methods=["GET"])
 async def get_all() -> Any:
@@ -19,7 +20,7 @@ async def get_all() -> Any:
     per_page = request.args.get("per_page", default=10, type=int)
     order_by_param = request.args.get("order_by", default="id", type=str)
 
-    atendimento_service = AtendimentoService()
+    atendimento_service = DeliveryService()
     try:
         atendimentos = await atendimento_service.get_all(page, per_page, order_by_param)
     except ValueError as e:
@@ -83,14 +84,14 @@ async def import_csv() -> Any:
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sample)
         decoded_stream.seek(0)
-        
+
         csv_input = csv.DictReader(decoded_stream, delimiter=dialect.delimiter)
 
         atendimentos.clear()
         errors.clear()
         for line_number, row in enumerate(csv_input, start=2):
             try:
-                obj = AtendimentoDT.from_dict(row)
+                obj = DeliveryDT.from_dict(row)
             except Exception as e:
                 errors.append(f"Invalid CSV file at line {line_number}: {e}")
                 continue

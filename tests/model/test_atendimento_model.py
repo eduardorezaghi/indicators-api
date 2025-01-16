@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from src.models import Delivery
 
 
-class TestAtendimentoModel:
+class TestDeliveryModel:
     def test_create_atendimento(
         self, session: Session, angel_fixture, polo_fixture, client_fixture
     ):

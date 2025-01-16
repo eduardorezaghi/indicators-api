@@ -5,7 +5,7 @@ from dateutil.parser import parse
 
 
 @dataclass
-class Atendimento:
+class Delivery:
     id_atendimento: int | None
     id_cliente: int
     angel: str
@@ -14,7 +14,7 @@ class Atendimento:
     data_de_atendimento: datetime
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Atendimento":
+    def from_dict(cls, data: dict) -> "Delivery":
         def handle_date(date: str) -> datetime:
             return parse(date)  # type: ignore
 

@@ -10,7 +10,7 @@ from src.api.atendimento_routes import atendimentos
 from src.models import Delivery
 
 
-class TestAtendimentoRoutes:
+class TestDeliveryRoutes:
     def test_query_all_atendimentos(self, client, atendimentos_fixture: list[Delivery]):
         response = client.get("/api/v1/atendimento")
         json_response = response.json
