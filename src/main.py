@@ -1,4 +1,7 @@
+from typing import Any
 
+import werkzeug
+import werkzeug.exceptions
 from flask import Flask
 from flask_alembic import Alembic
 from flask_sqlalchemy import SQLAlchemy
@@ -7,6 +10,14 @@ from src.api import atendimento_routes, base_routes
 from src.database import default_db, init_db
 
 from .config import Settings, settings
+
+
+def handle_exception(e: Exception) -> Any:
+    return {"error": str(e)}, 500
+
+
+def handle_bad_request(e: Exception) -> Any:
+    return {"error": str(e)}, 400
 
 
 def create_app(
@@ -30,6 +41,10 @@ def create_app(
     app.register_blueprint(
         atendimento_routes, url_prefix=f"{settings_dict.API_V1_PREFIX}/atendimento"
     )
+
+    app.register_error_handler(code_or_exception=Exception, f=handle_exception)
+    app.register_error_handler(code_or_exception=werkzeug.exceptions.BadRequest, f=handle_bad_request)
+    app.register_error_handler(code_or_exception=werkzeug.exceptions.InternalServerError, f=handle_exception)
 
     return app
 
