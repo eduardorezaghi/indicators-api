@@ -1,7 +1,10 @@
+import sqlalchemy.exc
+import werkzeug.exceptions
 from sqlalchemy import select
 
 from src.database import default_db as db
 from src.domain import Delivery as DeliveryDomain
+from src.domain.atendimento import DeliveryDomainCreate
 from src.models import Angel, Client, Delivery, Polo
 from src.repositories.base import BaseRepository
 
@@ -41,14 +44,26 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
         return paginated_query.items
 
-    async def create(self, data: DeliveryDomain) -> Delivery:
-        dict_data = data.to_dict()
-        entity = Delivery(**dict_data)
+    async def create(self, data: DeliveryDomainCreate) -> Delivery:
+        entity = Delivery(
+            cliente_id=data.cliente_id,
+            angel_id=data.id_angel,
+            polo_id=data.id_polo,
+            data_limite=data.data_limite,
+            data_de_atendimento=data.data_de_atendimento,
+        )
 
-        with db.session() as session:
-            session.add(entity)
-            session.commit()
-            session.refresh(entity)
+        try:
+            with db.session() as session:
+                session.add(entity)
+                session.commit()
+                session.refresh(entity)
+        except sqlalchemy.exc.DBAPIError as e:
+            session.rollback()
+            raise werkzeug.exceptions.InternalServerError(
+                description="An error occurred while trying to create the entity.",
+                original_exception=e,
+            )
 
         return entity
 
@@ -67,4 +82,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
         pass
 
     async def delete(self, id: int) -> bool:
-        pass
+        raise NotImplementedError
+
+    async def get_by_attribute(self, attribute):
+        raise NotImplementedError

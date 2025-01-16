@@ -51,6 +51,37 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.OK
         assert len(json_response.get("data")) == 0
 
+    def test_create_atendimento(self, client):
+        data = {
+            "cliente_id": 123456,
+            "angel": "John Doe",
+            "polo": "SP - SÃO PAULO",
+            "data_limite": "2021-06-30",
+            "data_de_atendimento": "2021-06-29",
+        }
+
+        response = client.post("/api/v1/atendimento", json=data)
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.CREATED
+        assert json_response["cliente_id"] == data["cliente_id"]
+        assert json_response["angel"] == data["angel"]
+        assert json_response["polo"] == data["polo"]
+        assert json_response["data_limite"] is not None
+        assert json_response["data_de_atendimento"] is not None
+
+    def test_create_atendimento_missing_data(self, client):
+        data = {
+            "cliente_id": 123456,
+            "angel": "John Doe",
+        }
+
+        response = client.post("/api/v1/atendimento", json=data)
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.BAD_REQUEST
+        assert "error" in json_response
+
     def test_import_csv_no_file(self, client):
         response = client.post("/api/v1/atendimento/import_csv")
         assert response.status_code == 400
@@ -73,8 +104,8 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.OK
         assert json_response.get("message") == "CSV file imported successfully"
         assert len(atendimentos) == 2
-        assert atendimentos[0].id_atendimento == 715
-        assert atendimentos[1].id_atendimento == 667
+        assert atendimentos[0].id == 715
+        assert atendimentos[1].id == 667
 
     @pytest.mark.parametrize("delimiter", [",", ";", "\t"])
     def test_import_csv_with_various_delimiters(self, client, delimiter):
@@ -94,8 +125,8 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.OK
         assert json_response.get("message") == "CSV file imported successfully"
         assert len(atendimentos) == 2
-        assert atendimentos[0].id_atendimento == 715
-        assert atendimentos[1].id_atendimento == 667
+        assert atendimentos[0].id == 715
+        assert atendimentos[1].id == 667
 
     @pytest.mark.parametrize("date_format", [
         "2021/06/29 09:09:30", 
@@ -120,8 +151,8 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.OK
         assert json_response.get("message") == "CSV file imported successfully"
         assert len(atendimentos) == 2
-        assert atendimentos[0].id_atendimento == 715
-        assert atendimentos[1].id_atendimento == 667
+        assert atendimentos[0].id == 715
+        assert atendimentos[1].id == 667
 
     def test_import_csv_invalid_data_de_atendimento_date(self, client):
         csv_content = """id_atendimento,id_cliente,angel,polo,data_limite,data_de_atendimento
@@ -156,4 +187,4 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.OK
         assert any("Invalid CSV file at line 3" in error for error in json_response.get("errors"))
         assert len(atendimentos) == 1
-        assert atendimentos[0].id_atendimento == 715
+        assert atendimentos[0].id == 715

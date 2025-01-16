@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 from typing import Any
 
+import werkzeug.exceptions
 from flask import Blueprint, jsonify, request, url_for
 
 from src.domain import Delivery as DeliveryDT
@@ -11,6 +12,29 @@ bp = Blueprint("atendimento", __name__)
 
 atendimentos: list[DeliveryDT] = []
 errors: list[str] = []
+
+
+@bp.route("", methods=["POST"])
+async def create() -> Any:
+    data = request.get_json()
+
+    try:
+        atendimento = DeliveryDT.from_dict(data)
+    except Exception as e:
+        raise werkzeug.exceptions.BadRequest(str(e))
+
+    # check if any needed field is missing
+    if not atendimento.cliente_id or not atendimento.angel or not atendimento.polo:
+        raise werkzeug.exceptions.BadRequest("Missing required fields")
+
+
+    delivery_service = DeliveryService()
+
+    entity = await delivery_service.create(atendimento)
+    item = atendimento.__dict__
+    item["id"] = entity.id
+
+    return jsonify(item), 201
 
 
 @bp.route("", methods=["GET"])
@@ -49,8 +73,8 @@ async def get_all() -> Any:
     serialized_items = []
     for atendimento in atendimentos:
         item = DeliveryDT(
-            id_atendimento=atendimento.id,
-            id_cliente=atendimento.cliente_id,
+            id=atendimento.id,
+            cliente_id=atendimento.cliente_id,
             angel=atendimento.angel.name,
             polo=atendimento.polo.name,
             data_limite=atendimento.data_limite,
@@ -103,7 +127,8 @@ async def import_csv() -> Any:
                 continue
             atendimentos.append(obj)
 
-        # await atendimento_service.create(atendimentos)
+        # atendimento_service = DeliveryService()
+        # await atendimento_service.create_many(atendimentos)
         return jsonify(
             {
                 "message": "CSV file imported successfully",
