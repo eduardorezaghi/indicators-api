@@ -4,10 +4,12 @@ services:
     volumes:
       - .:/app
     environment:
-      - FLASK_APP=src.main
+      - FLASK_APP=src.app
       - FLASK_ENV=development
       - FLASK_RUN_HOST=0.0.0.0
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     ports:
       - "7012:7012"
     expose:
@@ -36,6 +38,36 @@ services:
       retries: 5
     networks:
       - app_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  celery_worker:
+    build: .
+    volumes:
+      - .:/app
+    command:
+      - celery
+      - -A
+      - src.app.celery
+      - worker
+      - --loglevel=info
+    environment:
+      - FLASK_APP=src.app
+      - FLASK_ENV=${FLASK_ENV}
+      - FLASK_RUN_HOST="0.0.0.0"
+      - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - app_network
+    depends_on:
+      - redis
+
 
   nginx:
     image: nginx:latest

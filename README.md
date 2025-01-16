@@ -19,11 +19,11 @@ You can run the API in two ways:
 
 See:
 ```bash
-$ flask --app src.main run --port 7012
+$ flask --app src.app run --port 7012
 ```
 or
 ```bash
-$ python -m src.main
+$ python -m src.app
 ```
 
 # Testing the API

@@ -1,11 +1,12 @@
-import csv
-from io import StringIO
 from typing import Any
 
+import werkzeug.exceptions
 from flask import Blueprint, jsonify, request, url_for
+from celery.result import AsyncResult
 
 from src.domain import Delivery as DeliveryDT
 from src.services.atendimento_service import DeliveryService
+from src.tasks import import_csv_task
 
 bp = Blueprint("atendimento", __name__)
 
@@ -13,15 +14,38 @@ atendimentos: list[DeliveryDT] = []
 errors: list[str] = []
 
 
+@bp.route("", methods=["POST"])
+def create() -> Any:
+    data = request.get_json()
+
+    try:
+        atendimento = DeliveryDT.from_dict(data)
+    except Exception as e:
+        raise werkzeug.exceptions.BadRequest(str(e))
+
+    # check if any needed field is missing
+    if not atendimento.cliente_id or not atendimento.angel or not atendimento.polo:
+        raise werkzeug.exceptions.BadRequest("Missing required fields")
+
+
+    delivery_service = DeliveryService()
+
+    entity = delivery_service.create(atendimento)
+    item = atendimento.__dict__
+    item["id"] = entity.id
+
+    return jsonify(item), 201
+
+
 @bp.route("", methods=["GET"])
-async def get_all() -> Any:
+def get_all() -> Any:
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=10, type=int)
     order_by_param = request.args.get("order_by", default="id", type=str)
 
     atendimento_service = DeliveryService()
     try:
-        atendimentos = await atendimento_service.get_all(page, per_page, order_by_param)
+        atendimentos = atendimento_service.get_all(page, per_page, order_by_param)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -49,8 +73,8 @@ async def get_all() -> Any:
     serialized_items = []
     for atendimento in atendimentos:
         item = DeliveryDT(
-            id_atendimento=atendimento.id,
-            id_cliente=atendimento.cliente_id,
+            id=atendimento.id,
+            cliente_id=atendimento.cliente_id,
             angel=atendimento.angel.name,
             polo=atendimento.polo.name,
             data_limite=atendimento.data_limite,
@@ -68,7 +92,7 @@ async def get_all() -> Any:
 
 
 @bp.route("/import_csv", methods=["POST"])
-async def import_csv() -> Any:
+def import_csv() -> Any:
     if "file" not in request.files and not request.data:
         return jsonify({"error": "No file part"}), 400
 
@@ -84,30 +108,28 @@ async def import_csv() -> Any:
     if not file_content:
         return jsonify({"error": "Empty file"}), 400
 
-    with StringIO(file_content) as decoded_stream:
-        sample = decoded_stream.read(1024)
-        decoded_stream.seek(0)
-        sniffer = csv.Sniffer()
-        dialect = sniffer.sniff(sample)
-        decoded_stream.seek(0)
+    task = import_csv_task.delay(file_content)
 
-        csv_input = csv.DictReader(decoded_stream, delimiter=dialect.delimiter)
+    return jsonify({"message": "CSV file is being processed", "task_id": task.id}), 202
 
-        atendimentos.clear()
-        errors.clear()
-        for line_number, row in enumerate(csv_input, start=2):
-            try:
-                obj = DeliveryDT.from_dict(row)
-            except Exception as e:
-                errors.append(f"Invalid CSV file at line {line_number}: {e}")
-                continue
-            atendimentos.append(obj)
 
-        # await atendimento_service.create(atendimentos)
-        return jsonify(
-            {
-                "message": "CSV file imported successfully",
-                "data": [atendimento.__dict__ for atendimento in atendimentos],
-                "errors": errors,
-            }
-        ), 200
+@bp.route("/task_status/<task_id>", methods=["GET"])
+def task_status(task_id: str) -> Any:
+    task_result = AsyncResult(task_id)
+    if task_result.state == 'PENDING':
+        response = {
+            "state": task_result.state,
+            "status": "Pending..."
+        }
+    elif task_result.state != 'FAILURE':
+        response = {
+            "state": task_result.state,
+            "status": task_result.info.get('status', ''),
+            "result": task_result.info.get('result', '')
+        }
+    else:
+        response = {
+            "state": task_result.state,
+            "status": str(task_result.info)
+        }
+    return jsonify(response)
