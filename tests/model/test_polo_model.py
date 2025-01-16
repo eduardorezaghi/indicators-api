@@ -40,3 +40,24 @@ class TestPoloModel:
         session.add(polo2)
         with pytest.raises(Exception):
             session.commit()
+
+    def test_create_polo_created_at_is_not_none(self, session: Session):
+        polo = Polo(name="SP - SÃO PAULO")
+
+        session.add(polo)
+        session.commit()
+
+        query_obj = session.query(Polo).filter_by(name="SP - SÃO PAULO").first()
+
+        assert query_obj.created_at is not None
+        
+    def test_create_polo_updated_at_deleted_at_are_none(self, session: Session):
+        polo = Polo(name="SP - SÃO PAULO")
+
+        session.add(polo)
+        session.commit()
+
+        query_obj = session.query(Polo).filter_by(name="SP - SÃO PAULO").first()
+
+        assert query_obj.updated_at is None
+        assert query_obj.deleted_at is None

@@ -33,6 +33,27 @@ class TestAngelModel:
         assert query_obj.count() == 1
         assert angel.id is not None
 
+    def test_created_at_is_not_none(self, session: Session):
+        angel = Angel(name="Angel A")
+
+        session.add(angel)
+        session.commit()
+
+        query_obj = session.query(Angel).filter_by(name="Angel A").first()
+
+        assert query_obj.created_at is not None
+
+    def test_updated_at_deleted_at_are_none(self, session: Session):
+        angel = Angel(name="Angel A")
+
+        session.add(angel)
+        session.commit()
+
+        query_obj = session.query(Angel).filter_by(name="Angel A").first()
+
+        assert query_obj.updated_at is None
+        assert query_obj.deleted_at is None
+
     def test_unique_constraint_angel(self, session: Session):
         angel1 = Angel(name="Angel A")
         session.add(angel1)

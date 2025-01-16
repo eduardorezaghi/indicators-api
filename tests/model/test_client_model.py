@@ -30,3 +30,24 @@ class TestClientModel:
 
         assert query_obj.count() == 1
         assert client.id is not None
+
+    def test_create_client_created_at_is_not_none(self, session: Session):
+        client = Client(id=1012349)
+
+        session.add(client)
+        session.commit()
+
+        query_obj = session.query(Client).filter_by(id=1012349).first()
+
+        assert query_obj.created_at is not None
+
+    def test_create_client_updated_at_deleted_at_are_none(self, session: Session):
+        client = Client(id=1012349)
+
+        session.add(client)
+        session.commit()
+
+        query_obj = session.query(Client).filter_by(id=1012349).first()
+
+        assert query_obj.updated_at is None
+        assert query_obj.deleted_at is None

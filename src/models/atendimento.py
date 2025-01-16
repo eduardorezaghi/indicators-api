@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import default_db
 from src.models.angel import Angel
-from src.models.base_model import BaseModel
+from src.models.base_model import BaseModel, timestamp
 from src.models.client import Client
 from src.models.polo import Polo
 
@@ -17,8 +17,8 @@ class Delivery(BaseModel, default_db.Model):
     cliente_id: Mapped[int] = mapped_column(ForeignKey("cliente.id"))
     angel_id: Mapped[int] = mapped_column(ForeignKey("angel.id"))
     polo_id: Mapped[int] = mapped_column(ForeignKey("polo.id"))
-    data_limite: Mapped[datetime] = mapped_column()
-    data_de_atendimento: Mapped[datetime] = mapped_column()
+    data_limite: Mapped[timestamp] = mapped_column()
+    data_de_atendimento: Mapped[timestamp] = mapped_column()
 
     cliente: Mapped[Client] = relationship("Client")
     angel: Mapped[Angel] = relationship("Angel")
