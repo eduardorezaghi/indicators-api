@@ -26,6 +26,7 @@ python-dotenv==1.0.1
 ruff==0.9.1
 six==1.17.0
 SQLAlchemy==2.0.37
+types-python-dateutil==2.9.0.20241206
 typing_extensions==4.12.2
 tzdata==2024.2
 Werkzeug==3.1.3

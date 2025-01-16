@@ -5,7 +5,6 @@ from typing import Any
 from flask import Blueprint, jsonify, request, url_for
 
 from src.domain import Delivery as DeliveryDT
-from src.schemas import AtendimentoSchema
 from src.services.atendimento_service import DeliveryService
 
 bp = Blueprint("atendimento", __name__)
@@ -47,10 +46,17 @@ async def get_all() -> Any:
         else None
     )
 
-    dump_items = [
-        AtendimentoSchema.model_validate(atendimento) for atendimento in atendimentos
-    ]
-    serialized_items = [item.model_dump() for item in dump_items]
+    serialized_items = []
+    for atendimento in atendimentos:
+        item = DeliveryDT(
+            id_atendimento=atendimento.id,
+            id_cliente=atendimento.cliente_id,
+            angel=atendimento.angel.name,
+            polo=atendimento.polo.name,
+            data_limite=atendimento.data_limite,
+            data_de_atendimento=atendimento.data_de_atendimento,
+        )
+        serialized_items.append(item.__dict__)
 
     return jsonify(
         {
