@@ -2,6 +2,7 @@ import sqlalchemy
 import sqlalchemy.exc
 import werkzeug.exceptions
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.database import default_db as db
 from src.domain import Client as ClientDomain
@@ -10,21 +11,22 @@ from src.repositories.base import BaseRepository
 
 
 class ClientRepository(BaseRepository):
-    async def get_by_id(self, id: int) -> Client | None:
-        with db.session() as session:
-            stmt = select(Client).where(Client.id == id)
-            return session.execute(stmt).scalar_one_or_none()
+    def __init__(self, session: Session = db.session):
+        self.session = session
 
-    async def create(self, client: ClientDomain) -> Client:
+    def get_by_id(self, id: int) -> Client | None:
+        stmt = select(Client).where(Client.id == id)
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def create(self, client: ClientDomain) -> Client:
         entity = Client(**client.to_dict())
 
         try:
-            with db.session() as session:
-                session.add(entity)
-                session.commit()
-                session.refresh(entity)
+            self.session.add(entity)
+            self.session.commit()
+            self.session.refresh(entity)
         except sqlalchemy.exc.DBAPIError as e:
-            session.rollback()
+            self.session.rollback()
             raise werkzeug.exceptions.InternalServerError(
                 description="An error occurred while trying to create the entity.",
                 original_exception=e,
@@ -32,14 +34,14 @@ class ClientRepository(BaseRepository):
 
         return entity
 
-    async def get_by_attribute(self, attribute):
+    def get_by_attribute(self, attribute):
         raise NotImplementedError
 
-    async def get_paginated(self, page, per_page, order_by_param):
+    def get_paginated(self, page, per_page, order_by_param):
         raise NotImplementedError
 
-    async def update(self, entity):
+    def update(self, entity):
         raise NotImplementedError
 
-    async def delete(self, id):
+    def delete(self, id):
         raise NotImplementedError

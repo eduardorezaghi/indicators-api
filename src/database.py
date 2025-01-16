@@ -1,9 +1,11 @@
-from typing import Any, Optional
+from contextlib import contextmanager
+from typing import Any, Generator, Optional
 
 import click
 from flask import g  # for managing db session context.
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
+from sqlalchemy import create_engine
 
 from .config import settings
 
@@ -17,6 +19,19 @@ default_db = SQLAlchemy(
     model_class=Base,
     engine_options={"echo": settings.DB_ECHO_LOG},
 )
+
+# local engine for Celery tasks (not attached to Flask app).
+celery_engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, echo=settings.DB_ECHO_LOG)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=celery_engine)
+
+
+@contextmanager
+def get_celery_session() -> Generator[Session, None, None]:
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 def init_app(app: Any) -> None:

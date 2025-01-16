@@ -3,6 +3,7 @@ from typing import Any
 import sqlalchemy
 import werkzeug.exceptions
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.database import default_db as db
 from src.domain import Angel as AngelDomain
@@ -11,22 +12,23 @@ from src.repositories.base import BaseRepository
 
 
 class AngelRepository(BaseRepository):
-    async def get_by_name(self, name: str) -> Angel | None:
-        with db.session() as session:
-            stmt = select(Angel).where(Angel.name == name)
-            return session.execute(stmt).scalar_one_or_none()
+    def __init__(self, session: Session = db.session):
+        self.session = session
 
-    async def create(self, angel: AngelDomain) -> Angel:
-        entity = await self.get_by_name(angel.name)
+    def get_by_name(self, name: str) -> Angel | None:
+        stmt = select(Angel).where(Angel.name == name)
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def create(self, angel: AngelDomain) -> Angel:
+        entity = self.get_by_name(angel.name)
         entity = Angel(name=angel.name)
 
         try:
-            with db.session() as session:
-                session.add(entity)
-                session.commit()
-                session.refresh(entity)
+            self.session.add(entity)
+            self.session.commit()
+            self.session.refresh(entity)
         except sqlalchemy.exc.DBAPIError as e:
-            session.rollback()
+            self.session.rollback()
             raise werkzeug.exceptions.InternalServerError(
                 description="An error occurred while trying to create the entity.",
                 original_exception=e
@@ -34,19 +36,19 @@ class AngelRepository(BaseRepository):
 
         return entity
 
-    async def get_by_attribute(self, attribute: Any) -> Angel | None:
+    def get_by_attribute(self, attribute: Any) -> Angel | None:
         pass
 
-    async def get_by_id(self, id: int) -> Angel | None:
+    def get_by_id(self, id: int) -> Angel | None:
         pass
 
-    async def get_paginated(
+    def get_paginated(
         self, page: int, per_page: int, order_by_param: str
     ) -> list[Angel]:
         raise NotImplementedError
 
-    async def update(self, entity: Angel) -> Angel:
+    def update(self, entity: Angel) -> Angel:
         raise NotImplementedError
 
-    async def delete(self, id: int) -> bool:
+    def delete(self, id: int) -> bool:
         raise NotImplementedError

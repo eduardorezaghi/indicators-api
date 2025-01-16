@@ -12,40 +12,41 @@ from src.repositories import (
     DeliveryRepository,
     PoloRepository,
 )
+from src.database import default_db as db
 
 
 class DeliveryService:
-    def __init__(self, repository: DeliveryRepository = DeliveryRepository()):
+    def __init__(self, repository: DeliveryRepository = DeliveryRepository(session=db.session)):
         self.repository = repository
 
-    async def get_by_id(self, id: int) -> Delivery | None:
-        return await self.repository.get_by_id(id)
+    def get_by_id(self, id: int) -> Delivery | None:
+        return self.repository.get_by_id(id)
 
-    async def get_all(
+    def get_all(
         self, page: int, per_page: int, order_by_param: str
     ) -> List[Delivery]:
         try:
-            return await self.repository.get_paginated(page, per_page, order_by_param)
+            return self.repository.get_paginated(page, per_page, order_by_param)
         except ValueError as e:
             raise ValueError(e)
 
-    async def create(self, atendimento: DeliveryDomain) -> Delivery:
+    def create(self, atendimento: DeliveryDomain) -> Delivery:
         angel_repository = AngelRepository()
         polo_repository = PoloRepository()
         client_repository = ClientRepository()
 
         # check if the related entities exists.
-        angel = await angel_repository.get_by_name(atendimento.angel)
-        polo = await polo_repository.get_by_attribute(atendimento.polo)
-        client = await client_repository.get_by_id(atendimento.cliente_id)
+        angel = angel_repository.get_by_name(atendimento.angel)
+        polo = polo_repository.get_by_attribute(atendimento.polo)
+        client = client_repository.get_by_id(atendimento.cliente_id)
 
         # if any of the related entities doesn't exist, create them.
         if angel is None:
-            angel = await angel_repository.create(AngelDomain(name=atendimento.angel))
+            angel = angel_repository.create(AngelDomain(name=atendimento.angel))
         if polo is None:
-            polo = await polo_repository.create(PoloDomain(name=atendimento.polo))
+            polo = polo_repository.create(PoloDomain(name=atendimento.polo))
         if client is None:
-            client = await client_repository.create(
+            client = client_repository.create(
                 ClientDomain(id=atendimento.cliente_id)
             )
 
@@ -58,13 +59,13 @@ class DeliveryService:
             data_de_atendimento=atendimento.data_de_atendimento,
         )
 
-        return await self.repository.create(atendimento_create)
+        return self.repository.create(atendimento_create)
 
-    async def create_many(self, atendimentos: List[DeliveryDomain]) -> List[Delivery]:
-        return await self.repository.create_many(atendimentos)
+    def create_many(self, atendimentos: List[DeliveryDomain]) -> List[Delivery]:
+        return self.repository.create_many(atendimentos)
 
-    async def update(self, atendimento: DeliveryDomain) -> Delivery | None:
-        return await self.repository.update(atendimento)
+    def update(self, atendimento: DeliveryDomain) -> Delivery | None:
+        return self.repository.update(atendimento)
 
-    async def delete(self, id: int) -> bool:
-        return await self.repository.delete(id)
+    def delete(self, id: int) -> bool:
+        return self.repository.delete(id)

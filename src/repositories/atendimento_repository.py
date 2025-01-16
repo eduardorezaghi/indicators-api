@@ -1,6 +1,7 @@
 import sqlalchemy.exc
 import werkzeug.exceptions
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.orm import Session
 
 from src.database import default_db as db
 from src.domain import Delivery as DeliveryDomain
@@ -12,39 +13,54 @@ from src.repositories.base import BaseRepository
 class DeliveryRepository(BaseRepository[Delivery]):
     available_order_by = [
         "id",
+        "-id",
         "created_at",
+        "-created_at",
         "updated_at",
-        "id_cliente",
+        "-updated_at",
+        "cliente_id",
+        "-cliente_id",
         "angel",
+        "-angel", 
         "polo",
+        "-polo",
         "data_limite",
+        "-data_limite",
         "data_de_atendimento",
+        "-data_de_atendimento",
     ]
 
-    async def get_by_id(self, id: int) -> Delivery | None:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get_by_id(self, id: int) -> Delivery | None:
         pass
 
-    async def get_paginated(
+    def get_paginated(
         self, page: int, per_page: int, order_by_param: str
     ) -> list[Delivery]:
         if order_by_param not in self.available_order_by:
             raise ValueError(f"order_by_param must be one of {self.available_order_by}")
+
+        if order_by_param.startswith("-"):
+            order_by_param = order_by_param[1:] + " DESC"
+
 
         query = (
             select(Delivery)
             .join(Client, Delivery.cliente_id == Client.id)
             .join(Angel, Delivery.angel_id == Angel.id)
             .join(Polo, Delivery.polo_id == Polo.id)
-            .order_by(order_by_param)
+            .order_by(text(order_by_param))
             .filter(Delivery.deleted_at.is_(None))
         )
         paginated_query = db.paginate(
             query, page=page, per_page=per_page, error_out=False
         )
 
-        return paginated_query.items
+        return paginated_query.items  # type: ignore
 
-    async def create(self, data: DeliveryDomainCreate) -> Delivery:
+    def create(self, data: DeliveryDomainCreate) -> Delivery:
         entity = Delivery(
             cliente_id=data.cliente_id,
             angel_id=data.id_angel,
@@ -54,12 +70,11 @@ class DeliveryRepository(BaseRepository[Delivery]):
         )
 
         try:
-            with db.session() as session:
-                session.add(entity)
-                session.commit()
-                session.refresh(entity)
+            self.session.add(entity)
+            self.session.commit()
+            self.session.refresh(entity)
         except sqlalchemy.exc.DBAPIError as e:
-            session.rollback()
+            self.session.rollback()
             raise werkzeug.exceptions.InternalServerError(
                 description="An error occurred while trying to create the entity.",
                 original_exception=e,
@@ -67,22 +82,35 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
         return entity
 
-    async def create_many(self, data: list[DeliveryDomain]) -> list[Delivery]:
-        entities = []
-        with db.session() as session:
-            for item in data:
-                entity = Delivery(**item.to_dict())
-                entities.append(entity)
+    def create_many(self, data: list[DeliveryDomain]) -> list[Delivery]:
+        entities = [
+            Delivery(
+                cliente_id=item.cliente_id,
+                angel_id=item.id_angel,
+                polo_id=item.id_polo,
+                data_limite=item.data_limite,
+                data_de_atendimento=item.data_de_atendimento,
+            )
+            for item in data
+        ]
 
-            session.add_all(entities)
+        try:
+            self.session.bulk_save_objects(entities)
+            self.session.commit()
+        except sqlalchemy.exc.DBAPIError as e:
+            self.session.rollback()
+            raise Exception(
+                "An error occurred while trying to create the entities.",
+                e,
+            )
 
         return entities
 
-    async def update(self, data: DeliveryDomain) -> Delivery | None:
+    def update(self, data: DeliveryDomain) -> Delivery | None:
         pass
 
-    async def delete(self, id: int) -> bool:
+    def delete(self, id: int) -> bool:
         raise NotImplementedError
 
-    async def get_by_attribute(self, attribute):
+    def get_by_attribute(self, attribute):
         raise NotImplementedError
