@@ -1,6 +1,6 @@
 import sqlalchemy.exc
 import werkzeug.exceptions
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.database import default_db as db
@@ -11,24 +11,24 @@ from src.repositories.base import BaseRepository
 
 
 class DeliveryRepository(BaseRepository[Delivery]):
-    available_order_by = [
-        "id",
-        "-id",
-        "created_at",
-        "-created_at",
-        "updated_at",
-        "-updated_at",
-        "cliente_id",
-        "-cliente_id",
-        "angel",
-        "-angel", 
-        "polo",
-        "-polo",
-        "data_limite",
-        "-data_limite",
-        "data_de_atendimento",
-        "-data_de_atendimento",
-    ]
+    available_order_by_dict = {
+        "id": Delivery.id,
+        "-id": Delivery.id.desc(),
+        "created_at": Delivery.created_at,
+        "-created_at": Delivery.created_at.desc(),
+        "updated_at": Delivery.updated_at,
+        "-updated_at": Delivery.updated_at.desc(),
+        "cliente_id": Delivery.cliente_id,
+        "-cliente_id": Delivery.cliente_id.desc(),
+        "angel": Angel.name,
+        "-angel": Angel.name.desc(),
+        "polo": Polo.name,
+        "-polo": Polo.name.desc(),
+        "data_limite": Delivery.data_limite,
+        "-data_limite": Delivery.data_limite.desc(),
+        "data_de_atendimento": Delivery.data_de_atendimento,
+        "-data_de_atendimento": Delivery.data_de_atendimento.desc(),
+    }
 
     def __init__(self, session: Session):
         self.session = session
@@ -39,11 +39,8 @@ class DeliveryRepository(BaseRepository[Delivery]):
     def get_paginated(
         self, page: int, per_page: int, order_by_param: str
     ) -> list[Delivery]:
-        if order_by_param not in self.available_order_by:
-            raise ValueError(f"order_by_param must be one of {self.available_order_by}")
-
-        if order_by_param.startswith("-"):
-            order_by_param = order_by_param[1:] + " DESC"
+        if order_by_param not in self.available_order_by_dict.keys():
+            raise ValueError(f"order_by_param must be one of {list(self.available_order_by_dict.keys())}")
 
 
         query = (
@@ -51,7 +48,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
             .join(Client, Delivery.cliente_id == Client.id)
             .join(Angel, Delivery.angel_id == Angel.id)
             .join(Polo, Delivery.polo_id == Polo.id)
-            .order_by(text(order_by_param))
+            .order_by(self.available_order_by_dict[order_by_param])
             .filter(Delivery.deleted_at.is_(None))
         )
         paginated_query = db.paginate(

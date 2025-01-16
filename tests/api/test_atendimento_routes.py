@@ -8,6 +8,7 @@ import pytest
 
 from src.api.atendimento_routes import atendimentos
 from src.models import Delivery
+from src.repositories import DeliveryRepository
 
 
 class TestDeliveryRoutes:
@@ -36,7 +37,7 @@ class TestDeliveryRoutes:
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
         assert (
             json_response.get("error")
-            == "order_by_param must be one of ['id', 'created_at', 'updated_at', 'id_cliente', 'angel', 'polo', 'data_limite', 'data_de_atendimento']"
+            == f"order_by_param must be one of {list(DeliveryRepository.available_order_by_dict.keys())}"
         )
 
     def test_query_all_atendimentos_shouldnt_return_deleted_at_items(
