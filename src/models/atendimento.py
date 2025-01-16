@@ -1,18 +1,25 @@
-from datetime import date
+from datetime import datetime
 
-from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import default_db
+from src.models.angel import Angel
 from src.models.base_model import BaseModel
+from src.models.client import Client
+from src.models.polo import Polo
 
 
 # mypy: ignore-errors
-class Atendimento(BaseModel, default_db.Model):
+class Delivery(BaseModel, default_db.Model):
     __tablename__ = "atendimento"
-    
-    id_cliente: Mapped[int] = mapped_column()
-    angel: Mapped[str] = mapped_column(String(255))
-    polo: Mapped[str] = mapped_column(String(255))
-    data_limite: Mapped[date] = mapped_column()
-    data_de_atendimento: Mapped[date] = mapped_column()
+
+    cliente_id: Mapped[int] = mapped_column(ForeignKey("cliente.id"))
+    angel_id: Mapped[int] = mapped_column(ForeignKey("angel.id"))
+    polo_id: Mapped[int] = mapped_column(ForeignKey("polo.id"))
+    data_limite: Mapped[datetime] = mapped_column()
+    data_de_atendimento: Mapped[datetime] = mapped_column()
+
+    cliente: Mapped[Client] = relationship("Client")
+    angel: Mapped[Angel] = relationship("Angel")
+    polo: Mapped[Polo] = relationship("Polo")

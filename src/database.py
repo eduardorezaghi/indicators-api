@@ -33,8 +33,7 @@ def close_db(e: Optional[Exception] = None) -> None:
 
 # Inject a custom engine, if passed (mainly used in tests).
 def init_db(db: SQLAlchemy = default_db) -> None:
-    from src.models import Person  # noqa
-    from src.models import Atendimento  # noqa
+    from src.models import Delivery, Angel, Client, Polo  # noqa
 
     db.create_all()
 
