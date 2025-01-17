@@ -87,5 +87,10 @@ class ClientRepository(BaseRepository):
     def update(self, entity: Client) -> Client | None:
         raise NotImplementedError
 
-    def delete(self, id):
+    # type: ignore
+    def delete(self, id: int) -> bool: # pragma: no cover
         raise NotImplementedError
+
+    async def get_by_attribute_async(self, attribute): # pragma: no cover # type: ignore
+        raise NotImplementedError
+
