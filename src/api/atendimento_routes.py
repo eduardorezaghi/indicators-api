@@ -1,12 +1,11 @@
 from typing import Any
 
 import werkzeug.exceptions
-from flask import Blueprint, jsonify, request, url_for
 from celery.result import AsyncResult
+from flask import Blueprint, jsonify, request, url_for
 
 from src.domain import Delivery as DeliveryDT
 from src.domain import DeliveryDomainUpdate
-
 from src.services.atendimento_service import DeliveryService
 from src.tasks import import_csv_task
 
@@ -28,7 +27,6 @@ def create() -> Any:
     # check if any needed field is missing
     if not atendimento.cliente_id or not atendimento.angel or not atendimento.polo:
         raise werkzeug.exceptions.BadRequest("Missing required fields")
-
 
     delivery_service = DeliveryService()
 
@@ -92,6 +90,7 @@ def get_all() -> Any:
         }
     )
 
+
 @bp.route("/<int:id>", methods=["PUT", "PATCH"])
 def update(id: int) -> Any:
     data = request.get_json()
@@ -139,20 +138,14 @@ def import_csv() -> Any:
 @bp.route("/task_status/<task_id>", methods=["GET"])
 def task_status(task_id: str) -> Any:
     task_result = AsyncResult(task_id)
-    if task_result.state == 'PENDING':
+    if task_result.state == "PENDING":
+        response = {"state": task_result.state, "status": "Pending..."}
+    elif task_result.state != "FAILURE":
         response = {
             "state": task_result.state,
-            "status": "Pending..."
-        }
-    elif task_result.state != 'FAILURE':
-        response = {
-            "state": task_result.state,
-            "status": task_result.info.get('status', ''),
-            "result": task_result.info.get('result', '')
+            "status": task_result.info.get("status", ""),
+            "result": task_result.info.get("result", ""),
         }
     else:
-        response = {
-            "state": task_result.state,
-            "status": str(task_result.info)
-        }
+        response = {"state": task_result.state, "status": str(task_result.info)}
     return jsonify(response)

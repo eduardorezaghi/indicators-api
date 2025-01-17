@@ -1,13 +1,14 @@
 import datetime
+
 import sqlalchemy.exc
 import werkzeug.exceptions
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from src.database import default_db as db
 from src.domain import Delivery as DeliveryDomain
-from src.domain.atendimento import DeliveryDomainCreate
+from src.domain.atendimento import DeliveryDomainCreate, DeliveryDomainUpdate
 from src.models import Angel, Client, Delivery, Polo
 from src.repositories.base import BaseRepository
 
@@ -33,7 +34,9 @@ class DeliveryRepository(BaseRepository[Delivery]):
     }
 
     # constructor injection for the session (dependency injection)
-    def __init__(self, session: Session = db.session, async_session: AsyncSession=None):
+    def __init__(
+        self, session: Session = db.session, async_session: AsyncSession = None
+    ):
         self.session = session
         self.async_session = async_session
 
@@ -50,14 +53,15 @@ class DeliveryRepository(BaseRepository[Delivery]):
         self, page: int, per_page: int, order_by_param: str
     ) -> list[Delivery]:
         if order_by_param not in self.available_order_by_dict.keys():
-            raise ValueError(f"order_by_param must be one of {list(self.available_order_by_dict.keys())}")
-
+            raise ValueError(
+                f"order_by_param must be one of {list(self.available_order_by_dict.keys())}"
+            )
 
         query = (
             select(Delivery)
             .join(Client, Delivery.cliente_id == Client.id)
-            .join(Angel, Delivery.angel_id == Angel.id)
-            .join(Polo, Delivery.polo_id == Polo.id)
+            .join(Angel, Delivery.id_angel == Angel.id)
+            .join(Polo, Delivery.id_polo == Polo.id)
             .order_by(self.available_order_by_dict[order_by_param])
             .filter(Delivery.deleted_at.is_(None))
         )
@@ -68,14 +72,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
         return paginated_query.items  # type: ignore
 
     def create(self, data: DeliveryDomainCreate) -> Delivery:
-        entity = Delivery(
-            id=data.id,
-            cliente_id=data.cliente_id,
-            angel_id=data.id_angel,
-            polo_id=data.id_polo,
-            data_limite=data.data_limite,
-            data_de_atendimento=data.data_de_atendimento,
-        )
+        entity = Delivery(**data.to_dict())
 
         try:
             self.session.add(entity)
@@ -94,8 +91,8 @@ class DeliveryRepository(BaseRepository[Delivery]):
         entity = Delivery(
             id=data.id,
             cliente_id=data.cliente_id,
-            angel_id=data.id_angel,
-            polo_id=data.id_polo,
+            id_angel=data.id_angel,
+            id_polo=data.id_polo,
             data_limite=data.data_limite,
             data_de_atendimento=data.data_de_atendimento,
         )
@@ -113,12 +110,14 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
         return entity
 
-    async def bulk_create_async(self, data: list[DeliveryDomainCreate]) -> list[Delivery]:
+    async def bulk_create_async(
+        self, data: list[DeliveryDomainCreate]
+    ) -> list[Delivery]:
         entities = [
             Delivery(
                 cliente_id=item.cliente_id,
-                angel_id=item.id_angel,
-                polo_id=item.id_polo,
+                id_angel=item.id_angel,
+                id_polo=item.id_polo,
                 data_limite=item.data_limite,
                 data_de_atendimento=item.data_de_atendimento,
             )
@@ -141,8 +140,8 @@ class DeliveryRepository(BaseRepository[Delivery]):
         entities = [
             Delivery(
                 cliente_id=item.cliente_id,
-                angel_id=item.id_angel,
-                polo_id=item.id_polo,
+                id_angel=item.id_angel,
+                id_polo=item.id_polo,
                 data_limite=item.data_limite,
                 data_de_atendimento=item.data_de_atendimento,
             )
@@ -161,7 +160,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
         return entities
 
-    def update(self, data: DeliveryDomain, id: int = None) -> Delivery | None:
+    def update(self, data: DeliveryDomainUpdate, id: int = None) -> Delivery | None:
         entity = self.get_by_id(data.id if id is None else id)
         if entity is None:
             return None

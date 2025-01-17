@@ -10,6 +10,7 @@ def handle_date(date: str) -> datetime | None:
     except Exception:
         return None
 
+
 def _to_dict(obj: object) -> dict:
     dict = {}
     for k, v in asdict(obj).items():
@@ -21,11 +22,11 @@ def _to_dict(obj: object) -> dict:
 @dataclass
 class Delivery:
     id: int | None
-    cliente_id: int | None
-    angel: str | None
-    polo: str | None
-    data_limite: datetime | None
-    data_de_atendimento: datetime | None
+    cliente_id: int
+    angel: str
+    polo: str
+    data_limite: datetime
+    data_de_atendimento: datetime
 
     @classmethod
     def from_dict(cls, data: dict) -> "Delivery":
@@ -50,10 +51,12 @@ class DeliveryDomainCreate:
     id_polo: int
     data_limite: datetime
     data_de_atendimento: datetime
+    id: int | None = None
 
     def to_dict(self) -> dict:
         # Only include non-None values
         return _to_dict(self)
+
 
 @dataclass
 class DeliveryDomainUpdate:

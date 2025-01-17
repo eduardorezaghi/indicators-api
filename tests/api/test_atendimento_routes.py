@@ -55,7 +55,7 @@ class TestDeliveryRoutes:
 
     def test_create_atendimento(self, client):
         data = {
-            "cliente_id": 123456,
+            "id_cliente": 123456,
             "angel": "John Doe",
             "polo": "SP - SÃO PAULO",
             "data_limite": "2021-06-30",
@@ -66,7 +66,7 @@ class TestDeliveryRoutes:
         json_response = response.json
 
         assert response.status_code == http.HTTPStatus.CREATED
-        assert json_response["cliente_id"] == data["cliente_id"]
+        assert json_response["cliente_id"] == data["id_cliente"]
         assert json_response["angel"] == data["angel"]
         assert json_response["polo"] == data["polo"]
         assert json_response["data_limite"] is not None
