@@ -1,9 +1,5 @@
 # KPI - OPI indicators API
 
-![Tests](https://github.com/{username}/{repo}/actions/workflows/test.yml/badge.svg)
-[![codecov](https://codecov.io/gh/{username}/{repo}/branch/main/graph/badge.svg)](https://codecov.io/gh/{username}/{repo})
-
-
 This is an API project for Stone's backend developer challenge.  
 It's **nearly** a full-featured API, with the following features:
 - Create an atendimento record.
@@ -28,6 +24,30 @@ It's, by time-constraints, missing:
 - A more robust logging system.
 - Swagger documentation.
 
+
+**TLDR**
+- Spin up the containers.
+```bash
+$ docker-compose up -d
+```
+- Run the migrations.
+```bash
+$ docker-compose exec web flask db upgrade
+```
+- Run the tests.
+```bash
+$ docker-compose exec web pytest
+```
+- Import the provided workspace in `Insomnia` and test the API.
+
+Inspect the compose logs to see the API logs.
+```bash
+$ docker-compose logs -f
+```
+The code coverage will be available at `htmlcov/index.html`.
+
+<br>
+<br>
 
 # Table of contents
 - [KPI - OPI indicators API](#kpi---opi-indicators-api)
