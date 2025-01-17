@@ -107,6 +107,9 @@ def update(id: int) -> Any:
     delivery_service = DeliveryService()
 
     entity = delivery_service.update(atendimento, id)
+    if not entity:
+        raise werkzeug.exceptions.NotFound(description="Resource not found")
+
     item = atendimento.__dict__
     item["id"] = entity.id
 
