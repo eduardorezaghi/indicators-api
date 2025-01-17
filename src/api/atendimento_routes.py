@@ -90,6 +90,40 @@ def get_all() -> Any:
         }
     )
 
+@bp.route("/angel_productivity", methods=["GET"])
+def get_angel_productivity() -> Any:
+    at_most = request.args.get("at_most", default=100, type=int)
+
+    atendimento_service = DeliveryService()
+    try:
+        atendimentos = atendimento_service.get_angel_productivity(at_most=at_most)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify(
+        {
+            "total": len(atendimentos),
+            "data": [at for at in atendimentos],
+        }
+    )
+
+@bp.route("/polo_productivity", methods=["GET"])
+def get_polo_productivity() -> Any:
+    at_most = request.args.get("at_most", default=100, type=int)
+
+    atendimento_service = DeliveryService()
+    try:
+        atendimentos = atendimento_service.get_polo_productivity(at_most=at_most)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify(
+        {
+            "total": len(atendimentos),
+            "data": [at for at in atendimentos],
+        }
+    )
+
 
 @bp.route("/<int:id>", methods=["PUT", "PATCH"])
 def update(id: int) -> Any:
