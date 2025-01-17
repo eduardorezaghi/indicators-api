@@ -19,6 +19,31 @@ class AngelRepository(BaseRepository):
         stmt = select(Angel).where(Angel.name == name)
         return self.session.execute(stmt).scalar_one_or_none()
 
+    def bulk_create(self, angels: list[AngelDomain]) -> list[Angel]:  # pragma: no cover
+        entities = [Angel(name=angel.name) for angel in angels]
+
+        try:
+            self.session.add_all(entities)
+            self.session.commit()
+        except sqlalchemy.exc.DBAPIError as e:
+            self.session.rollback()
+            raise werkzeug.exceptions.InternalServerError(
+                description="An error occurred while trying to create the entities.",
+                original_exception=e,
+            )
+
+        return entities
+
+    def get_by_name_async(self, name: str) -> Angel | None:  # pragma: no cover
+        stmt = select(Angel).where(Angel.name == name)
+        result = self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    def get_by_names(self, names: list[str]) -> list[Angel]:  # pragma: no cover
+        stmt = select(Angel).where(Angel.name.in_(names))
+        result = self.session.execute(stmt)
+        return result.scalars().all()
+
     def create(self, angel: AngelDomain) -> Angel:
         entity = self.get_by_name(angel.name)
         entity = Angel(name=angel.name)
@@ -31,7 +56,7 @@ class AngelRepository(BaseRepository):
             self.session.rollback()
             raise werkzeug.exceptions.InternalServerError(
                 description="An error occurred while trying to create the entity.",
-                original_exception=e
+                original_exception=e,
             )
 
         return entity
@@ -58,4 +83,3 @@ class AngelRepository(BaseRepository):
 
     async def get_by_id_async(self, id):
         raise NotImplementedError
-

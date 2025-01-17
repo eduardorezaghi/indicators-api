@@ -14,14 +14,6 @@ class BaseRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def get_by_attribute_async(self, attribute: Any) -> T | None:
-        pass
-
-    @abstractmethod
-    async def get_by_id_async(self, id: int) -> T | None:
-        pass
-
-    @abstractmethod
     def get_paginated(
         self, page: int, per_page: int, order_by_param: str
     ) -> list[T]:

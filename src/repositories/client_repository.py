@@ -19,6 +19,11 @@ class ClientRepository(BaseRepository):
         stmt = select(Client).where(Client.id == id)
         return self.session.execute(stmt).scalar_one_or_none()
 
+    def get_by_ids(self, ids: list[int]) -> Sequence[Client]:
+        stmt = select(Client).where(Client.id.in_(ids))
+        result = self.session.execute(stmt)
+        return result.scalars().all()
+
     def create(self, client: ClientDomain) -> Client:
         entity = Client(**client.to_dict())
 
@@ -34,6 +39,21 @@ class ClientRepository(BaseRepository):
             )
 
         return entity
+
+    def bulk_create(self, clients: list[ClientDomain]) -> list[Client]:
+        entities = [Client(**client.to_dict()) for client in clients]
+
+        try:
+            self.session.add_all(entities)
+            self.session.commit()
+        except sqlalchemy.exc.DBAPIError as e:
+            self.session.rollback()
+            raise werkzeug.exceptions.InternalServerError(
+                description="An error occurred while trying to create the entities.",
+                original_exception=e,
+            )
+
+        return entities
 
     def get_by_attribute(self, attribute):
         raise NotImplementedError

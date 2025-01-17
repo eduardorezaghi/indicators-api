@@ -19,6 +19,11 @@ class PoloRepository(BaseRepository):
         stmt = select(Polo).where(Polo.name == attribute)
         return self.session.execute(stmt).scalar_one_or_none()
 
+    def get_by_attributes(self, attributes: list[Any]) -> list[Polo]:
+        stmt = select(Polo).where(Polo.name.in_(attributes))
+        result = self.session.execute(stmt)
+        return result.scalars().all()
+
     def create(self, polo: PoloDomain) -> Polo:
         entity = Polo(name=polo.name)
 
@@ -34,6 +39,21 @@ class PoloRepository(BaseRepository):
             )
 
         return entity
+
+    def bulk_create(self, polos: list[PoloDomain]) -> list[Polo]:
+        entities = [Polo(name=polo.name) for polo in polos]
+
+        try:
+            self.session.add_all(entities)
+            self.session.commit()
+        except sqlalchemy.exc.DBAPIError as e:
+            self.session.rollback()
+            raise werkzeug.exceptions.InternalServerError(
+                description="An error occurred while trying to create the entities.",
+                original_exception=e,
+            )
+
+        return entities
 
     def get_by_id(self, id):
         raise NotImplementedError

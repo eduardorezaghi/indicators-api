@@ -5,9 +5,9 @@ from typing import Dict, List, Tuple
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
-from src.database import get_async_session
+from src.database import get_celery_session
 from src.domain import Angel as AngelDomain
 from src.domain import Client as ClientDomain
 from src.domain import Delivery as DeliveryDT
@@ -24,7 +24,7 @@ logger = get_task_logger(__name__)
 
 # Very hard to test this file because:
 # 1. It uses a celery task to perform the logic
-# 2. It uses an async session to interact with the database
+# 2. It uses an db session to interact with the database
 # 3. It uses a lot of dependencies
 
 # So, to test this we would need to perform some crazy mocking
@@ -33,12 +33,12 @@ logger = get_task_logger(__name__)
 # That's why I added pragmas to ignore coverage for this file :)
 
 
-async def process_batch(
+def process_batch(
     rows: List[Dict],
     repositories: Tuple[
         DeliveryRepository, AngelRepository, PoloRepository, ClientRepository
     ],
-    async_session: AsyncSession,
+    session: Session,
 ) -> Tuple[int, List[Dict]]:  # pragma: no cover
     """Process a batch of CSV rows"""
     successful_rows = 0
@@ -89,9 +89,9 @@ async def process_batch(
 
     try:
         # Batch create angels
-        existing_angels = await angel_repo.get_by_names_async(list(angels_to_create))
+        existing_angels = angel_repo.get_by_names(list(angels_to_create))
         new_angels = angels_to_create - {angel.name for angel in existing_angels}
-        created_angels = await angel_repo.bulk_create_async(
+        created_angels = angel_repo.bulk_create(
             [AngelDomain(name=name) for name in new_angels]
         )
         angels_map = {
@@ -99,17 +99,17 @@ async def process_batch(
         }
 
         # Batch create polos
-        existing_polos = await polo_repo.get_by_attributes_async(list(polos_to_create))
+        existing_polos = polo_repo.get_by_attributes(list(polos_to_create))
         new_polos = polos_to_create - {polo.name for polo in existing_polos}
-        created_polos = await polo_repo.bulk_create_async(
+        created_polos = polo_repo.bulk_create(
             [PoloDomain(name=name) for name in new_polos]
         )
         polos_map = {polo.name: polo.id for polo in [*existing_polos, *created_polos]}
 
         # Batch create clients
-        existing_clients = await client_repo.get_by_ids_async(list(clients_to_create))
+        existing_clients = client_repo.get_by_ids(list(clients_to_create))
         new_clients = clients_to_create - {client.id for client in existing_clients}
-        created_clients = await client_repo.bulk_create_async(
+        created_clients = client_repo.bulk_create(
             [ClientDomain(id=client_id) for client_id in new_clients]
         )
         clients_map = {
@@ -123,7 +123,7 @@ async def process_batch(
             delivery.cliente_id = clients_map[delivery.cliente_id]
 
         # Batch create deliveries
-        await delivery_repo.bulk_create_async(deliveries_to_create)
+        delivery_repo.create_many(deliveries_to_create)
         successful_rows = len(deliveries_to_create)
         logger.info("Successfully processed batch with %d deliveries", successful_rows)
 
@@ -155,12 +155,12 @@ async def process_csv(file_content: str) -> dict:  # pragma: no cover
 
     logger.info("Starting CSV import process")
 
-    async with get_async_session() as async_session:
+    with get_celery_session() as session:
         repositories = (
-            DeliveryRepository(async_session=async_session),
-            AngelRepository(async_session=async_session),
-            PoloRepository(async_session=async_session),
-            ClientRepository(async_session=async_session),
+            DeliveryRepository(session=session),
+            AngelRepository(session=session),
+            PoloRepository(session=session),
+            ClientRepository(session=session),
         )
 
         try:
@@ -178,8 +178,8 @@ async def process_csv(file_content: str) -> dict:  # pragma: no cover
 
                     if len(current_batch) >= BATCH_SIZE:
                         batch_rows = list(zip(current_batch_row_nums, current_batch))
-                        success_count, batch_errors = await process_batch(
-                            batch_rows, repositories, async_session
+                        success_count, batch_errors = process_batch(
+                            batch_rows, repositories, session
                         )
                         successful_rows += success_count
                         errors.extend(batch_errors)
@@ -189,8 +189,8 @@ async def process_csv(file_content: str) -> dict:  # pragma: no cover
                 # Process remaining rows
                 if current_batch:
                     batch_rows = list(zip(current_batch_row_nums, current_batch))
-                    success_count, batch_errors = await process_batch(
-                        batch_rows, repositories, async_session
+                    success_count, batch_errors = process_batch(
+                        batch_rows, repositories, session
                     )
                     successful_rows += success_count
                     errors.extend(batch_errors)

@@ -45,7 +45,13 @@ class DeliveryRepository(BaseRepository[Delivery]):
         self.session = session
 
     def get_by_id(self, id: int) -> Delivery | None:
-        pass
+        entity = (
+            self.session.query(Delivery)
+            .filter(Delivery.id == id, Delivery.deleted_at.is_(None))
+            .first()
+        )
+
+        return entity
 
     def get_paginated(
         self, page: int, per_page: int, order_by_param: str
@@ -72,8 +78,8 @@ class DeliveryRepository(BaseRepository[Delivery]):
     def create(self, data: DeliveryDomainCreate) -> Delivery:
         entity = Delivery(
             cliente_id=data.cliente_id,
-            angel_id=data.id_angel,
-            polo_id=data.id_polo,
+            id_angel=data.id_angel,
+            id_polo=data.id_polo,
             data_limite=data.data_limite,
             data_de_atendimento=data.data_de_atendimento,
         )
