@@ -1,3 +1,4 @@
+from typing import Any, Sequence
 import sqlalchemy
 import sqlalchemy.exc
 import werkzeug.exceptions
@@ -25,7 +26,7 @@ class ClientRepository(BaseRepository):
         result = await self.async_session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_ids_async(self, ids: list[int]) -> list[Client]:
+    async def get_by_ids_async(self, ids: list[int]) -> Sequence[Client]:
         stmt = select(Client).where(Client.id.in_(ids))
         result = await self.async_session.execute(stmt)
         return result.scalars().all()
@@ -77,13 +78,13 @@ class ClientRepository(BaseRepository):
 
         return entities
 
-    def get_by_attribute(self, attribute):
+    def get_by_attribute(self, attribute: Any) -> Client | None:
         raise NotImplementedError
 
-    def get_paginated(self, page, per_page, order_by_param):
+    def get_paginated(self, page: int, per_page: int, order_by_param: str) -> list[Client]:
         raise NotImplementedError
 
-    def update(self, entity):
+    def update(self, entity: Client) -> Client | None:
         raise NotImplementedError
 
     def delete(self, id):

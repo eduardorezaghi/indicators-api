@@ -1,13 +1,9 @@
 # mypy: ignore-errors
 
 import http
-import io
 from datetime import datetime
 
-import dateutil
-import pytest
 
-from src.api.atendimento_routes import atendimentos
 from src.models import Delivery
 from src.repositories import DeliveryRepository
 
@@ -91,7 +87,6 @@ class TestDeliveryRoutes:
         }
 
         response = client.put("/api/v1/atendimento/1", json=data)
-        json_response = response.json
 
         assert response.status_code == http.HTTPStatus.CREATED
         assert data["data_limite"].find("2021-07-01") != -1

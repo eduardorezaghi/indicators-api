@@ -9,4 +9,4 @@ from src.models.base_model import BaseModel
 # mypy: ignore-errors
 class Client(BaseModel, default_db.Model):
     __tablename__ = "cliente"
-    atendimentos: Mapped[List["Delivery"]] = relationship(back_populates="cliente") # type: ignore
+    atendimentos: Mapped[List["Delivery"]] = relationship(back_populates="cliente") # type: ignore # noqa

@@ -8,4 +8,4 @@ from src.models.base_model import BaseModel
 class Polo(BaseModel, default_db.Model):
     __tablename__ = "polo"
     name: Mapped[str] = mapped_column(String(255), unique=True)
-    atendimentos: Mapped[list["Delivery"]] = relationship(back_populates="polo") # type: ignore
+    atendimentos: Mapped[list["Delivery"]] = relationship(back_populates="polo") # type: ignore # noqa

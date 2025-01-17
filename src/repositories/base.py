@@ -6,15 +6,23 @@ T = TypeVar("T")
 
 class BaseRepository(ABC, Generic[T]):
     @abstractmethod
-    async def get_by_attribute(self, attribute: Any) -> T | None:
-        pass
-    
-    @abstractmethod
-    async def get_by_id(self, id: int) -> T | None:
+    def get_by_id(self, id: int) -> T | None:
         pass
 
     @abstractmethod
-    async def get_paginated(
+    def get_by_attribute(self, attribute: Any) -> T | None:
+        pass
+
+    @abstractmethod
+    async def get_by_attribute_async(self, attribute: Any) -> T | None:
+        pass
+
+    @abstractmethod
+    async def get_by_id_async(self, id: int) -> T | None:
+        pass
+
+    @abstractmethod
+    def get_paginated(
         self, page: int, per_page: int, order_by_param: str
     ) -> list[T]:
         pass
@@ -24,7 +32,7 @@ class BaseRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def update(self, entity: T) -> T | None:
+    def update(self, entity: T) -> T | None:
         pass
 
     @abstractmethod
