@@ -1,0 +1,158 @@
+name: CI/CD to AWS Lightsail
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  AWS_REGION: us-east-1
+  LIGHTSAIL_SERVICE_NAME: flask-app-service
+  POSTGRES_SERVICE_NAME: flask-app-db
+  REDIS_SERVICE_NAME: flask-app-redis
+  CELERY_SERVICE_NAME: flask-app-celery
+  NGINX_SERVICE_NAME: flask-app-nginx
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Install AWS Lightsail Control Plugin
+      run: |
+        curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "lightsailctl"
+        chmod +x ./lightsailctl
+        sudo mv ./lightsailctl /usr/local/bin/lightsailctl
+
+    - name: Build and push Database container
+      run: |
+        aws lightsail push-container-image \
+          --service-name ${POSTGRES_SERVICE_NAME} \
+          --label postgres \
+          --image postgres
+
+    - name: Build and push Redis container
+      run: |
+        aws lightsail push-container-image \
+          --service-name ${REDIS_SERVICE_NAME} \
+          --label redis \
+          --image redis
+
+    - name: Deploy Database and Redis containers
+      run: |
+        # Create container service if it doesn't exist
+        aws lightsail create-container-service \
+          --service-name ${POSTGRES_SERVICE_NAME} \
+          --power small \
+          --scale 1 || true
+
+        aws lightsail create-container-service \
+          --service-name ${REDIS_SERVICE_NAME} \
+          --power small \
+          --scale 1 || true
+
+        # Deploy containers
+        aws lightsail create-container-service-deployment \
+          --service-name ${POSTGRES_SERVICE_NAME} \
+          --containers '{
+            "postgres": {
+              "image": ":postgres.latest",
+              "environment": {
+                "POSTGRES_DB": "flask_app",
+                "POSTGRES_USER": "${{ secrets.POSTGRES_USER }}",
+                "POSTGRES_PASSWORD": "${{ secrets.POSTGRES_PASSWORD }}"
+              }
+            }
+          }'
+
+        aws lightsail create-container-service-deployment \
+          --service-name ${REDIS_SERVICE_NAME} \
+          --containers '{
+            "redis": {
+              "image": ":redis.latest"
+            }
+          }'
+
+    - name: Build and push Flask application
+      run: |
+        aws lightsail push-container-image \
+          --service-name ${LIGHTSAIL_SERVICE_NAME} \
+          --label flask-app \
+          --image web
+        
+        aws lightsail push-container-image \
+          --service-name ${CELERY_SERVICE_NAME} \
+          --label celery-worker \
+          --image celery_worker
+        
+        aws lightsail push-container-image \
+          --service-name ${NGINX_SERVICE_NAME} \
+          --label nginx \
+          --image nginx
+
+    - name: Deploy to Lightsail
+      run: |
+        # Create container service if it doesn't exist
+        aws lightsail create-container-service \
+          --service-name ${LIGHTSAIL_SERVICE_NAME} \
+          --power small \
+          --scale 1 || true
+
+        # Deploy containers
+        aws lightsail create-container-service-deployment \
+          --service-name ${LIGHTSAIL_SERVICE_NAME} \
+          --containers '{
+            "flask-app": {
+              "image": ":flask-app.latest",
+              "environment": {
+                "FLASK_APP": "src.app",
+                "FLASK_ENV": "production",
+                "SQLALCHEMY_DATABASE_URI": "${{ secrets.SQLALCHEMY_DATABASE_URI }}",
+                "SQLALCHEMY_DATABASE_URI_ASYNC": "${{ secrets.SQLALCHEMY_DATABASE_URI_ASYNC }}",
+                "CELERY_BROKER_URL": "redis://flask-app-redis:6379/0",
+                "CELERY_RESULT_BACKEND": "redis://flask-app-redis:6379/0"
+              },
+              "ports": {
+                "7012": "HTTP"
+              }
+            },
+            "celery": {
+              "image": ":celery-worker.latest",
+              "environment": {
+                "FLASK_APP": "src.app",
+                "FLASK_ENV": "production",
+                "SQLALCHEMY_DATABASE_URI": "${{ secrets.SQLALCHEMY_DATABASE_URI }}",
+                "SQLALCHEMY_DATABASE_URI_ASYNC": "${{ secrets.SQLALCHEMY_DATABASE_URI_ASYNC }}",
+                "CELERY_BROKER_URL": "redis://flask-app-redis:6379/0",
+                "CELERY_RESULT_BACKEND": "redis://flask-app-redis:6379/0"
+              }
+            },
+            "nginx": {
+              "image": ":nginx.latest",
+              "ports": {
+                "80": "HTTP"
+              }
+            }
+          }' \
+          --public-endpoint '{
+            "containerName": "nginx",
+            "containerPort": 80,
+            "healthCheck": {
+              "healthyThreshold": 2,
+              "unhealthyThreshold": 2,
+              "timeoutSeconds": 5,
+              "intervalSeconds": 10,
+              "path": "/",
+              "successCodes": "200-499"
+            }
+          }'
