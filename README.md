@@ -69,15 +69,27 @@ $ pip install -r requirements.txt
 By default, the API uses a PostgreSQL database.  
 This app uses Alembic (with Flask-Alembic) to manage the database migrations.  
 For this app, however, there is a hook that creates the database and the tables automatically, if they not exists.
-(may change to use explicit migrations, perhaps?)
 
-But, it's easy to create new migrations/or apply the most recent ones.
+Note: to run this command locally, ensure that the Postgres database is running and the connection string is correct in the `config.py` file,  
+such as this:
+```python
+...
+DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost/indicators"
+...
+```
 
-Apply the most recent migrations:
 ```bash
 $ flask --app src.app db upgrade
 ```
 
+You can also run this command from the app container.
+Note: the database container must be running.
+```bash
+$ docker-compose exec web flask db upgrade
+```
+
+This will create the database, tables and views, needed for the app to run.  
+Otherwise, the endpoints/tasks will fail.
 
 # Running the API
 You can run the API in three ways:
@@ -111,6 +123,8 @@ These containers will be available at the following ports:
 - `database`: 5432
 - `redis`: 6379
 - `nginx`: 80 (redirects to port 7012)
+
+Note that the previous step [Migrations](#migrations) is needed to run the API correctly.
 
 # Testing the API
 You can test the API using the following methods.
