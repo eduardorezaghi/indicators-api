@@ -1,15 +1,23 @@
 import datetime
+from typing import Sequence
 
 import sqlalchemy.exc
 import werkzeug.exceptions
-from sqlalchemy import select
+from sqlalchemy import Row, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.database import default_db as db
 from src.domain import Delivery as DeliveryDomain
 from src.domain.atendimento import DeliveryDomainCreate, DeliveryDomainUpdate
-from src.models import Angel, Client, Delivery, Polo
+from src.models import (
+    Angel,
+    Client,
+    Delivery,
+    Polo,
+    angel_productivity_view,
+    polo_productivity_view,
+)
 from src.repositories.base import BaseRepository
 
 
@@ -182,6 +190,18 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
         return entity
 
+    def get_angel_productivity_view(self, at_most: int) -> Sequence[Row]:
+        stmt = select(angel_productivity_view).limit(at_most)
+        items = self.session.execute(stmt).fetchall()
+
+        return items
+
+    def get_polo_productivity_view(self, at_most: int) -> Sequence[Row]:
+        stmt = select(polo_productivity_view).limit(at_most)
+        items = self.session.execute(stmt).fetchall()
+
+        return items
+
     def delete(self, id: int) -> bool:
         raise NotImplementedError
 
@@ -193,4 +213,3 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
     async def get_by_id_async(self, id):
         raise NotImplementedError
-
