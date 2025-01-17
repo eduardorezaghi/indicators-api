@@ -1,3 +1,4 @@
+from re import DEBUG
 from typing import Any
 
 import werkzeug
@@ -14,18 +15,24 @@ from src.database import default_db
 from .config import Settings, settings
 
 
-def handle_exception(e: Exception) -> Any:
-    return {"error": str(e)}, 500
+def handle_exception(e: werkzeug.exceptions.InternalServerError) -> Any:
+    return {
+        "error": "Internal Server Error",
+        "message": str(e) if settings.DEBUG else "An unexpected error occurred",
+    }, 500
 
 
-def handle_bad_request(e: Exception) -> Any:
+def handle_bad_request(e: werkzeug.exceptions.BadRequest) -> Any:
     return {"error": str(e)}, 400
 
-def handle_not_found(e: Exception) -> Any:
-    return {"error": str(e)}, 404
+
+def handle_not_found(e: werkzeug.exceptions.NotFound) -> Any:
+    return {"error": e.description}, 404
+
 
 alembic = Alembic()
 ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
+
 
 def create_app(
     settings_dict: Settings = settings,
@@ -38,7 +45,7 @@ def create_app(
         CELERY=dict(
             broker_url=settings_dict.CELERY_BROKER_URL,
             result_backend=settings_dict.CELERY_RESULT_BACKEND,
-        )
+        ),
     )
 
     # alembic extension
@@ -55,10 +62,14 @@ def create_app(
     )
 
     app.register_error_handler(code_or_exception=Exception, f=handle_exception)
-    app.register_error_handler(code_or_exception=werkzeug.exceptions.BadRequest, f=handle_bad_request)
-    app.register_error_handler(code_or_exception=werkzeug.exceptions.InternalServerError, f=handle_exception)
-    app.register_error_handler(code_or_exception=werkzeug.exceptions.NotFound, f=handle_not_found)
+    app.register_error_handler(
+        code_or_exception=werkzeug.exceptions.BadRequest, f=handle_bad_request
+    )
+    app.register_error_handler(
+        code_or_exception=werkzeug.exceptions.InternalServerError, f=handle_exception
+    )
+    app.register_error_handler(
+        code_or_exception=werkzeug.exceptions.NotFound, f=handle_not_found
+    )
 
     return app
-
-

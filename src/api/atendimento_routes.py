@@ -44,10 +44,7 @@ def get_all() -> Any:
     order_by_param = request.args.get("order_by", default="id", type=str)
 
     atendimento_service = DeliveryService()
-    try:
-        atendimentos = atendimento_service.get_all(page, per_page, order_by_param)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+    atendimentos = atendimento_service.get_all(page, per_page, order_by_param)
 
     next_page = (
         url_for(
@@ -95,10 +92,8 @@ def get_angel_productivity() -> Any:
     at_most = request.args.get("at_most", default=100, type=int)
 
     atendimento_service = DeliveryService()
-    try:
-        atendimentos = atendimento_service.get_angel_productivity(at_most=at_most)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    atendimentos = atendimento_service.get_angel_productivity(at_most=at_most)
+
 
     return jsonify(
         {
@@ -112,10 +107,7 @@ def get_polo_productivity() -> Any:
     at_most = request.args.get("at_most", default=100, type=int)
 
     atendimento_service = DeliveryService()
-    try:
-        atendimentos = atendimento_service.get_polo_productivity(at_most=at_most)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    atendimentos = atendimento_service.get_polo_productivity(at_most=at_most)
 
     return jsonify(
         {

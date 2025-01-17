@@ -33,8 +33,8 @@ class TestDeliveryRoutes:
 
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
         assert (
-            json_response.get("error")
-            == f"order_by_param must be one of {list(DeliveryRepository.available_order_by_dict.keys())}"
+            f"order_by_param must be one of {list(DeliveryRepository.available_order_by_dict.keys())}"
+            in json_response.get("error")
         )
 
     def test_query_all_atendimentos_shouldnt_return_deleted_at_items(

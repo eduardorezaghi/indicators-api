@@ -1,5 +1,7 @@
 from typing import List
 
+import werkzeug.exceptions
+
 from src.database import default_db as db
 from src.domain import Angel as AngelDomain
 from src.domain import Client as ClientDomain
@@ -29,7 +31,9 @@ class DeliveryService:
         try:
             return self.repository.get_paginated(page, per_page, order_by_param)
         except ValueError as e:
-            raise ValueError(e)
+            raise werkzeug.exceptions.BadRequest(
+                description=f"Error getting the atendimentos: {str(e)}",
+            )
 
     def create(self, atendimento: DeliveryDomain) -> Delivery:
         angel_repository = AngelRepository()
@@ -49,14 +53,19 @@ class DeliveryService:
         if client is None:
             client = client_repository.create(ClientDomain(id=atendimento.cliente_id))
 
-        # Create the atendimento
-        atendimento_create = DeliveryDomainCreate(
-            cliente_id=client.id,  # type: ignore
-            id_angel=angel.id,  # type: ignore
-            id_polo=polo.id,  # type: ignore
-            data_limite=atendimento.data_limite,
-            data_de_atendimento=atendimento.data_de_atendimento,
-        )
+        try:
+            # Create the atendimento
+            atendimento_create = DeliveryDomainCreate(
+                cliente_id=client.id,  # type: ignore
+                id_angel=angel.id,  # type: ignore
+                id_polo=polo.id,  # type: ignore
+                data_limite=atendimento.data_limite,
+                data_de_atendimento=atendimento.data_de_atendimento,
+            )
+        except Exception as e:
+            raise werkzeug.exceptions.BadRequest(
+                description=f"Error creating the atendimento: {str(e)}",
+            )
 
         return self.repository.create(atendimento_create)
 
@@ -72,7 +81,13 @@ class DeliveryService:
         return self.repository.delete(id)
 
     def get_angel_productivity(self, at_most: int) -> List[dict]:
-        sequence = self.repository.get_angel_productivity_view(at_most)
+        try:
+            sequence = self.repository.get_angel_productivity_view(at_most)
+        except Exception as e:
+            raise werkzeug.exceptions.InternalServerError(
+                description=f"Error getting the angel productivity: {str(e)}",
+                original_exception=e,
+            )
 
         serialized_items = []
         for row in sequence:
@@ -87,7 +102,13 @@ class DeliveryService:
         return serialized_items
 
     def get_polo_productivity(self, at_most: int) -> List[dict]:
-        sequence = self.repository.get_polo_productivity_view(at_most)
+        try:
+            sequence = self.repository.get_polo_productivity_view(at_most)
+        except Exception as e:
+            raise werkzeug.exceptions.InternalServerError(
+                description=f"Error getting the polo productivity: {str(e)}",
+                original_exception=e,
+            )
 
         serialized_items = []
         for row in sequence:
