@@ -1,5 +1,7 @@
-from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import List
+
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import default_db
 from src.models.base_model import BaseModel
@@ -9,3 +11,4 @@ from src.models.base_model import BaseModel
 class Angel(BaseModel, default_db.Model):
     __tablename__ = "angel"
     name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    atendimentos: Mapped[List["Delivery"]] = relationship(back_populates="angel") # type: ignore
