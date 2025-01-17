@@ -30,7 +30,7 @@ jobs:
       env:
         FLASK_APP: src.app
         FLASK_ENV: testing
-        SQLALCHEMY_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/test_db
+        SQLALCHEMY_DATABASE_URI: postgresql+psycopg://postgres:postgres@localhost:5432/test_db
         SQLALCHEMY_DATABASE_URI_ASYNC: postgresql+asyncpg://postgres:postgres@localhost:5432/test_db
         CELERY_BROKER_URL: redis://localhost:6379/0
         CELERY_RESULT_BACKEND: redis://localhost:6379/0
