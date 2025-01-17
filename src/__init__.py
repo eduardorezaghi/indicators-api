@@ -21,6 +21,8 @@ def handle_exception(e: Exception) -> Any:
 def handle_bad_request(e: Exception) -> Any:
     return {"error": str(e)}, 400
 
+def handle_not_found(e: Exception) -> Any:
+    return {"error": str(e)}, 404
 
 alembic = Alembic()
 ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
@@ -55,6 +57,7 @@ def create_app(
     app.register_error_handler(code_or_exception=Exception, f=handle_exception)
     app.register_error_handler(code_or_exception=werkzeug.exceptions.BadRequest, f=handle_bad_request)
     app.register_error_handler(code_or_exception=werkzeug.exceptions.InternalServerError, f=handle_exception)
+    app.register_error_handler(code_or_exception=werkzeug.exceptions.NotFound, f=handle_not_found)
 
     return app
 
