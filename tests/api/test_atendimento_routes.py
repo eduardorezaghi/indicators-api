@@ -4,6 +4,7 @@ import http
 import io
 from datetime import datetime
 
+import dateutil
 import pytest
 
 from src.api.atendimento_routes import atendimentos
@@ -82,3 +83,27 @@ class TestDeliveryRoutes:
 
         assert response.status_code == http.HTTPStatus.BAD_REQUEST
         assert "error" in json_response
+
+    def test_update_atendimento(self, client, atendimentos_fixture: list[Delivery]):
+        data = {
+            "data_limite": "2021-07-01",
+            "data_de_atendimento": "2021-06-30"
+        }
+
+        response = client.put("/api/v1/atendimento/1", json=data)
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.CREATED
+        assert data["data_limite"].find("2021-07-01") != -1
+        assert data["data_de_atendimento"].find("2021-06-30") != -1
+
+    def test_update_atendimento_missing_data(self, client, atendimentos_fixture: list[Delivery]):
+        data = {
+            "data_limite": "2021-07-01"
+        }
+
+        response = client.put("/api/v1/atendimento/1", json=data)
+        json_response = response.json
+
+        assert response.status_code == http.HTTPStatus.BAD_REQUEST
+        assert "Missing required fields" in json_response.get("error")
