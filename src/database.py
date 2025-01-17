@@ -1,11 +1,11 @@
-from contextlib import contextmanager
-from typing import Any, Generator, Optional
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator, Optional
 
 import click
 from flask import g  # for managing db session context.
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from .config import settings
 
@@ -20,18 +20,22 @@ default_db = SQLAlchemy(
     engine_options={"echo": settings.DB_ECHO_LOG},
 )
 
-# local engine for Celery tasks (not attached to Flask app).
-celery_engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, echo=settings.DB_ECHO_LOG)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=celery_engine)
+# local async engine for Celery tasks (not attached to Flask app).
+async_engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URI, echo=settings.DB_ECHO_LOG)
+AsyncSessionLocal = sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
-@contextmanager
-def get_celery_session() -> Generator[Session, None, None]:
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+@asynccontextmanager
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
 
 def init_app(app: Any) -> None:
