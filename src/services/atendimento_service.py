@@ -70,3 +70,32 @@ class DeliveryService:
 
     def delete(self, id: int) -> bool:
         return self.repository.delete(id)
+
+    def get_angel_productivity(self, at_most: int) -> List[dict]:
+        sequence = self.repository.get_angel_productivity_view(at_most)
+
+        serialized_items = []
+        for row in sequence:
+            item = {
+                "angel": row[0],
+                "total_deliveries": row[1],
+                "on_time_deliveries": row[2],
+                "on_time_percentage": row[3],
+            }
+            serialized_items.append(item)
+
+        return serialized_items
+
+    def get_polo_productivity(self, at_most: int) -> List[dict]:
+        sequence = self.repository.get_polo_productivity_view(at_most)
+
+        serialized_items = []
+        for row in sequence:
+            item = {
+                "polo": row[0],
+                "weekday": row[1],
+                "total_deliveries": row[2],
+            }
+            serialized_items.append(item)
+
+        return serialized_items
