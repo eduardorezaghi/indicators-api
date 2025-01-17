@@ -12,7 +12,6 @@ env:
   POSTGRES_SERVICE_NAME: flask-app-db
   REDIS_SERVICE_NAME: flask-app-redis
   CELERY_SERVICE_NAME: flask-app-celery
-  NGINX_SERVICE_NAME: flask-app-nginx
 
 jobs:
   build-and-deploy:
@@ -91,14 +90,9 @@ jobs:
           --image web
         
         aws lightsail push-container-image \
-          --service-name ${CELERY_SERVICE_NAME} \
+          --service-name ${REDIS_SERVICE_NAME} \
           --label celery-worker \
           --image celery_worker
-        
-        aws lightsail push-container-image \
-          --service-name ${NGINX_SERVICE_NAME} \
-          --label nginx \
-          --image nginx
 
     - name: Deploy to Lightsail
       run: |
@@ -137,22 +131,3 @@ jobs:
                 "CELERY_RESULT_BACKEND": "redis://flask-app-redis:6379/0"
               }
             },
-            "nginx": {
-              "image": ":nginx.latest",
-              "ports": {
-                "80": "HTTP"
-              }
-            }
-          }' \
-          --public-endpoint '{
-            "containerName": "nginx",
-            "containerPort": 80,
-            "healthCheck": {
-              "healthyThreshold": 2,
-              "unhealthyThreshold": 2,
-              "timeoutSeconds": 5,
-              "intervalSeconds": 10,
-              "path": "/",
-              "successCodes": "200-499"
-            }
-          }'
