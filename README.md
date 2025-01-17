@@ -26,6 +26,10 @@ It's, by time-constraints, missing:
 
 
 **TLDR**
+- Copy the .env-example file to .env.
+```bash
+$ cp .env-example .env
+```
 - Spin up the containers.
 ```bash
 $ docker-compose up -d
@@ -116,6 +120,11 @@ You can run the API in three ways:
 1. Using the `flask` command.
 2. Using the `python` command, running the main module directly.
 3. Using `docker-compose`.
+
+Make sure to fill the environment variables on your local `.env` file.
+```bash
+$ cp .env-example .env
+```
 
 See:
 ```bash
