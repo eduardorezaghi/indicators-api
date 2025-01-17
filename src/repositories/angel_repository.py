@@ -34,10 +34,6 @@ class AngelRepository(BaseRepository):
 
         return entities
 
-    def get_by_name_async(self, name: str) -> Angel | None:  # pragma: no cover
-        stmt = select(Angel).where(Angel.name == name)
-        result = self.session.execute(stmt)
-        return result.scalar_one_or_none()
 
     def get_by_names(self, names: list[str]) -> list[Angel]:  # pragma: no cover
         stmt = select(Angel).where(Angel.name.in_(names))
@@ -76,10 +72,4 @@ class AngelRepository(BaseRepository):
         raise NotImplementedError
 
     def delete(self, id: int) -> bool:
-        raise NotImplementedError
-
-    async def get_by_attribute_async(self, attribute):
-        raise NotImplementedError
-
-    async def get_by_id_async(self, id):
         raise NotImplementedError

@@ -160,9 +160,3 @@ class DeliveryRepository(BaseRepository[Delivery]):
 
     def get_by_attribute(self, attribute):
         raise NotImplementedError
-
-    async def get_by_attribute_async(self, attribute):
-        raise NotImplementedError
-
-    async def get_by_id_async(self, id):
-        raise NotImplementedError

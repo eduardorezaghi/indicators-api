@@ -11,7 +11,7 @@ For all **creational** operations, the app creates the related entities (Client,
 Of course, this isn't optimal. But for simplicity and time constraints, I consider it a good solution.
 
 For the **import** operation, the app uses Celery to process the CSV file in the background,  
-with an asynchronous operation using `asyncpg` to insert the records in the database.
+with an synchronous operation using `psycopg3` to insert the records in the database.
 
 **I tried to configure CI/CD to AWS, but I had some issues and I think this isn't going to be ready in time.**
 

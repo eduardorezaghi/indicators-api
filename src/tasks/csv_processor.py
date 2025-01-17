@@ -1,4 +1,3 @@
-import asyncio
 import csv
 from io import StringIO
 from typing import Dict, List, Tuple
@@ -32,6 +31,11 @@ logger = get_task_logger(__name__)
 
 # That's why I added pragmas to ignore coverage for this file :)
 
+
+@shared_task
+def import_csv_task(file_content: str) -> dict:  # pragma: no cover
+    result = process_csv(file_content)
+    return result
 
 def process_batch(
     rows: List[Dict],
@@ -140,13 +144,7 @@ def process_batch(
     return successful_rows, errors
 
 
-@shared_task
-def import_csv_task(file_content: str) -> dict:  # pragma: no cover
-    result = asyncio.run(process_csv(file_content))
-    return result
-
-
-async def process_csv(file_content: str) -> dict:  # pragma: no cover
+def process_csv(file_content: str) -> dict:  # pragma: no cover
     total_rows = 0
     successful_rows = 0
     errors = []
