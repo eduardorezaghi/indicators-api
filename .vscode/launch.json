@@ -28,6 +28,7 @@
                 "CELERY_BROKER_URL": "redis://localhost:6379/0",
                 "CELERY_RESULT_BACKEND": "redis://localhost:6379/0",
                 "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://postgres:postgres@localhost/indicators",
+                "SQLALCHEMY_DATABASE_URI_ASYNC": "postgresql+asyncpg://postgres:postgres@localhost/indicators",
             },
             "args": [
                 "-A",

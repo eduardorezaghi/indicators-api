@@ -21,7 +21,7 @@ default_db = SQLAlchemy(
 )
 
 # local async engine for Celery tasks (not attached to Flask app).
-async_engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URI, echo=settings.DB_ECHO_LOG)
+async_engine = create_async_engine(settings.SQLALCHEMY_DATABASE_URI_ASYNC, echo=settings.DB_ECHO_LOG)
 AsyncSessionLocal = sessionmaker(
     bind=async_engine,
     class_=AsyncSession,
