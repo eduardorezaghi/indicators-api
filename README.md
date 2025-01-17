@@ -120,7 +120,7 @@ For the second method, you can use the following command:
 ```bash
 $ pytest
 ```
-For the third method, you can import the provided workspace in `Insomnia`.  
+For the third method, you can import the provided workspace in `Insomnia`, on [docs/insomnia_workspace.yaml](docs/insomnia_workspace.yaml).
 You may found the following requests already created:
 
 - `GET http://localhost/api/v1/atendimento` to list all records.

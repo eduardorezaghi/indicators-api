@@ -1,0 +1,170 @@
+_type: export
+__export_format: 4
+__export_date: 2025-01-17T03:24:32.883Z
+__export_source: insomnia.desktop.app:v10.3.0
+resources:
+  - _id: req_b036ed4935094ce292c6e4e0d1a19189
+    parentId: wrk_scratchpad
+    modified: 1737080397978
+    created: 1737036967964
+    url: http://localhost/api/v1/atendimento
+    name: List atendimentos
+    description: ""
+    method: GET
+    body: {}
+    parameters:
+      - id: pair_991228b14bda48e8a24338a41815dcb7
+        name: page
+        value: "1"
+        description: ""
+        disabled: false
+      - id: pair_5b50b54753734462bdb72a49f37f8cae
+        name: per_page
+        value: "50"
+        description: ""
+        disabled: false
+      - id: pair_332f75cabb6e4eaa8b382073134358fd
+        name: order_by
+        value: -id
+        description: ""
+        disabled: false
+    headers:
+      - name: User-Agent
+        value: insomnia/10.3.0
+    authentication: {}
+    metaSortKey: -1737042012048
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_scratchpad
+    parentId: null
+    modified: 1736959197379
+    created: 1736959197379
+    name: Scratch Pad
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_61f293ca0fe84772bd030c750876d93f
+    parentId: wrk_scratchpad
+    modified: 1737079541277
+    created: 1737042011948
+    url: http://localhost/api/v1/atendimento
+    name: Create atendimento
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id_cliente": 123456,
+        	"angel": "João César",
+        	"polo": "RJ - VOLTA REDONDA",
+        	"data_limite": "2021-06-30 15:30",
+        	"data_de_atendimento": "2021-06-29 10:00"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/10.3.0
+    authentication: {}
+    metaSortKey: -1737042011948
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_fd0428bc80b04ee0a3cc43a7540d3980
+    parentId: wrk_scratchpad
+    modified: 1737072989011
+    created: 1736959218340
+    url: http://localhost:7012/api/v1/atendimento/import_csv
+    name: Import atendimentos as CSV
+    description: ""
+    method: POST
+    body:
+      mimeType: application/octet-stream
+      fileName: C:\Users\Eduardo\Stone\bd_desafio.csv
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/10.3.0
+        id: pair_f98a9f1574714a40b102b1c0fbb92044
+      - id: pair_93d820ac872e49909375eff6d89cb56a
+        name: Content-Type
+        value: text/csv
+        description: ""
+        disabled: false
+    authentication: {}
+    metaSortKey: -1736959218340
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_fd4d2ebd00f44dfe9334e4fb3031a557
+    parentId: wrk_scratchpad
+    modified: 1737080565893
+    created: 1737064845601
+    url: http://localhost:7012/api/v1/atendimento/1
+    name: Update atendimento
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "data_limite": "2025-01-25 23:00",
+        	"data_de_atendimento": "2025-01-24 15:25"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/10.3.0
+    authentication: {}
+    metaSortKey: -1736959218240
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_99d30891da4bdcebc63947a8fc17f076de878684
+    parentId: wrk_scratchpad
+    modified: 1736959205564
+    created: 1736959205564
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
+    isPrivate: false
+    metaSortKey: 1736959205564
+    environmentType: kv
+    _type: environment
+  - _id: jar_99d30891da4bdcebc63947a8fc17f076de878684
+    parentId: wrk_scratchpad
+    modified: 1736959205637
+    created: 1736959205637
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
