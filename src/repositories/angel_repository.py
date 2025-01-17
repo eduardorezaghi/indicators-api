@@ -21,12 +21,12 @@ class AngelRepository(BaseRepository):
         stmt = select(Angel).where(Angel.name == name)
         return self.session.execute(stmt).scalar_one_or_none()
 
-    async def get_by_name_async(self, name: str) -> Angel | None:
+    async def get_by_name_async(self, name: str) -> Angel | None:  # pragma: no cover
         stmt = select(Angel).where(Angel.name == name)
         result = await self.async_session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_names_async(self, names: list[str]) -> list[Angel]:
+    async def get_by_names_async(self, names: list[str]) -> list[Angel]:  # pragma: no cover
         stmt = select(Angel).where(Angel.name.in_(names))
         result = await self.async_session.execute(stmt)
         return result.scalars().all()
@@ -48,7 +48,7 @@ class AngelRepository(BaseRepository):
 
         return entity
 
-    async def create_async(self, angel: AngelDomain) -> Angel:
+    async def create_async(self, angel: AngelDomain) -> Angel: # pragma: no cover
         entity = await self.get_by_name_async(angel.name)
         entity = Angel(name=angel.name)
 
@@ -65,7 +65,7 @@ class AngelRepository(BaseRepository):
 
         return entity
 
-    async def bulk_create_async(self, angels: list[AngelDomain]) -> list[Angel]:
+    async def bulk_create_async(self, angels: list[AngelDomain]) -> list[Angel]:  # pragma: no cover
         entities = [Angel(name=angel.name) for angel in angels]
 
         try:

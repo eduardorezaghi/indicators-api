@@ -5,6 +5,8 @@ from flask import Blueprint, jsonify, request, url_for
 from celery.result import AsyncResult
 
 from src.domain import Delivery as DeliveryDT
+from src.domain import DeliveryDomainUpdate
+
 from src.services.atendimento_service import DeliveryService
 from src.tasks import import_csv_task
 
@@ -89,6 +91,27 @@ def get_all() -> Any:
             "prev": prev_page,
         }
     )
+
+@bp.route("/<int:id>", methods=["PUT", "PATCH"])
+def update(id: int) -> Any:
+    data = request.get_json()
+
+    try:
+        atendimento = DeliveryDomainUpdate.from_dict(data)
+    except Exception as e:
+        raise werkzeug.exceptions.BadRequest(str(e))
+
+    # check if any needed field is missing
+    if not atendimento.data_limite or not atendimento.data_de_atendimento:
+        raise werkzeug.exceptions.BadRequest("Missing required fields")
+
+    delivery_service = DeliveryService()
+
+    entity = delivery_service.update(atendimento, id)
+    item = atendimento.__dict__
+    item["id"] = entity.id
+
+    return jsonify(item), 201
 
 
 @bp.route("/import_csv", methods=["POST"])

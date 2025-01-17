@@ -5,6 +5,7 @@ from src.domain import Client as ClientDomain
 from src.domain import Delivery as DeliveryDomain
 from src.domain import DeliveryDomainCreate
 from src.domain import Polo as PoloDomain
+from src.domain import DeliveryDomainUpdate
 from src.models import Delivery
 from src.repositories import (
     AngelRepository,
@@ -16,6 +17,7 @@ from src.database import default_db as db
 
 
 class DeliveryService:
+    # constructor injection for the repository (dependency injection)
     def __init__(self, repository: DeliveryRepository = DeliveryRepository(session=db.session)):
         self.repository = repository
 
@@ -64,8 +66,8 @@ class DeliveryService:
     def create_many(self, atendimentos: List[DeliveryDomain]) -> List[Delivery]:
         return self.repository.create_many(atendimentos)
 
-    def update(self, atendimento: DeliveryDomain) -> Delivery | None:
-        return self.repository.update(atendimento)
+    def update(self, atendimento: DeliveryDomainUpdate, id: int = None) -> Delivery | None:
+        return self.repository.update(atendimento, id)
 
     def delete(self, id: int) -> bool:
         return self.repository.delete(id)
