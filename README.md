@@ -1,5 +1,9 @@
 # KPI - OPI indicators API
 
+![Tests](https://github.com/{username}/{repo}/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/{username}/{repo}/branch/main/graph/badge.svg)](https://codecov.io/gh/{username}/{repo})
+
+
 This is an API project for Stone's backend developer challenge.  
 It's **nearly** a full-featured API, with the following features:
 - Create an atendimento record.
@@ -13,7 +17,12 @@ Of course, this isn't optimal. But for simplicity and time constraints, I consid
 For the **import** operation, the app uses Celery to process the CSV file in the background,  
 with an asynchronous operation using `asyncpg` to insert the records in the database.
 
+**I tried to configure CI/CD to AWS, but I had some issues and I think this isn't going to be ready in time.**
+
+But add a GitHub Actions workflow to run the tests and check the code coverage :)
+
 It's, by time-constraints, missing:
+- Automatic deployment (CI/CD).
 - A more robust error handling.
 - A more robust input validation (with Pydantic or Marshmallow, for example).
 - A more robust logging system.
