@@ -4,7 +4,6 @@ from typing import Sequence
 import sqlalchemy.exc
 import werkzeug.exceptions
 from sqlalchemy import Row, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from src.database import default_db as db
@@ -42,20 +41,11 @@ class DeliveryRepository(BaseRepository[Delivery]):
     }
 
     # constructor injection for the session (dependency injection)
-    def __init__(
-        self, session: Session = db.session, async_session: AsyncSession = None
-    ):
+    def __init__(self, session: Session):
         self.session = session
-        self.async_session = async_session
 
     def get_by_id(self, id: int) -> Delivery | None:
-        entity = (
-            self.session.query(Delivery)
-            .filter(Delivery.id == id, Delivery.deleted_at.is_(None))
-            .first()
-        )
-
-        return entity
+        pass
 
     def get_paginated(
         self, page: int, per_page: int, order_by_param: str
@@ -80,7 +70,13 @@ class DeliveryRepository(BaseRepository[Delivery]):
         return paginated_query.items  # type: ignore
 
     def create(self, data: DeliveryDomainCreate) -> Delivery:
-        entity = Delivery(**data.to_dict())
+        entity = Delivery(
+            cliente_id=data.cliente_id,
+            angel_id=data.id_angel,
+            polo_id=data.id_polo,
+            data_limite=data.data_limite,
+            data_de_atendimento=data.data_de_atendimento,
+        )
 
         try:
             self.session.add(entity)
@@ -94,55 +90,6 @@ class DeliveryRepository(BaseRepository[Delivery]):
             )
 
         return entity
-
-    async def create_async(self, data: DeliveryDomainCreate) -> Delivery:
-        entity = Delivery(
-            id=data.id,
-            cliente_id=data.cliente_id,
-            id_angel=data.id_angel,
-            id_polo=data.id_polo,
-            data_limite=data.data_limite,
-            data_de_atendimento=data.data_de_atendimento,
-        )
-
-        try:
-            self.async_session.add(entity)
-            await self.async_session.commit()
-            await self.async_session.refresh(entity)
-        except sqlalchemy.exc.DBAPIError as e:
-            await self.async_session.rollback()
-            raise werkzeug.exceptions.InternalServerError(
-                description="An error occurred while trying to create the entity.",
-                original_exception=e,
-            )
-
-        return entity
-
-    async def bulk_create_async(
-        self, data: list[DeliveryDomainCreate]
-    ) -> list[Delivery]:
-        entities = [
-            Delivery(
-                cliente_id=item.cliente_id,
-                id_angel=item.id_angel,
-                id_polo=item.id_polo,
-                data_limite=item.data_limite,
-                data_de_atendimento=item.data_de_atendimento,
-            )
-            for item in data
-        ]
-
-        try:
-            self.async_session.add_all(entities)
-            await self.async_session.commit()
-        except sqlalchemy.exc.DBAPIError as e:
-            await self.async_session.rollback()
-            raise werkzeug.exceptions.InternalServerError(
-                description="An error occurred while trying to create the entities.",
-                original_exception=e,
-            )
-
-        return entities
 
     def create_many(self, data: list[DeliveryDomain]) -> list[Delivery]:
         entities = [

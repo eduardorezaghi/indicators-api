@@ -6,7 +6,6 @@ class Settings(BaseSettings):
     model_config = dict(env_file=".env", extra="ignore")
 
     SQLALCHEMY_DATABASE_URI: str = os.getenv("SQLALCHEMY_DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost/indicators")
-    SQLALCHEMY_DATABASE_URI_ASYNC: str = os.getenv("SQLALCHEMY_DATABASE_URI_ASYNC", "postgresql+asyncpg://postgres:postgres@localhost/indicators")
     API_V1_PREFIX: str = "/api/v1"
     DB_ECHO_LOG: bool = False
     FLASK_RUN_HOST: str = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
