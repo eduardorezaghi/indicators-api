@@ -42,7 +42,7 @@ $ docker-compose exec web flask db upgrade
 ```bash
 $ docker-compose exec web pytest
 ```
-- Import the provided workspace in `Insomnia` and test the API.
+- Import the provided workspace at [docs/insomnia_workspace.yaml](docs/insomnia_workspace.yaml) in `Insomnia` and test the API.
 
 Inspect the compose logs to see the API logs.
 ```bash
