@@ -1,7 +1,6 @@
-# KPI - OPI indicators API
+# Indicators API
 
-This is an API project for Stone's backend developer challenge.  
-It's **nearly** a full-featured API, with the following features:
+This API has the following features:
 - Create an atendimento record.
 - List all atendimento records.
 - Update an atendimento record.
