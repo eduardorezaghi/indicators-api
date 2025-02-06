@@ -18,6 +18,7 @@ class Delivery(BaseModel, default_db.Model):
     id_polo: Mapped[int] = mapped_column(ForeignKey("polo.id"))
     data_limite: Mapped[timestamp] = mapped_column(index=True)
     data_de_atendimento: Mapped[timestamp] = mapped_column(index=True)
+    status: Mapped[str] = mapped_column(index=True)
 
     cliente: Mapped[Client] = relationship("Client")
     angel: Mapped[Angel] = relationship("Angel")

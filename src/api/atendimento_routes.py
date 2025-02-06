@@ -127,7 +127,7 @@ def update(id: int) -> Any:
         raise werkzeug.exceptions.BadRequest(str(e))
 
     # check if any needed field is missing
-    if not atendimento.data_limite or not atendimento.data_de_atendimento:
+    if not atendimento.data_limite or not atendimento.data_de_atendimento or not atendimento.status:
         raise werkzeug.exceptions.BadRequest("Missing required fields")
 
     delivery_service = DeliveryService()

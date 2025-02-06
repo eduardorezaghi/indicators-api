@@ -82,6 +82,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
             id_polo=data.id_polo,
             data_limite=data.data_limite,
             data_de_atendimento=data.data_de_atendimento,
+            status=data.status,
         )
 
         try:
@@ -129,6 +130,7 @@ class DeliveryRepository(BaseRepository[Delivery]):
         entity.updated_at = datetime.datetime.now(datetime.UTC)
         entity.data_limite = data.data_limite
         entity.data_de_atendimento = data.data_de_atendimento
+        entity.status = data.status
 
         try:
             self.session.add(entity)

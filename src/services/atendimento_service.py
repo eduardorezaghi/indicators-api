@@ -61,6 +61,7 @@ class DeliveryService:
                 id_polo=polo.id,  # type: ignore
                 data_limite=atendimento.data_limite,
                 data_de_atendimento=atendimento.data_de_atendimento,
+                status=atendimento.status,
             )
         except Exception as e:
             raise werkzeug.exceptions.BadRequest(

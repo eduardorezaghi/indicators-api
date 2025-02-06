@@ -27,6 +27,7 @@ class Delivery:
     polo: str
     data_limite: datetime
     data_de_atendimento: datetime
+    status: str = "PENDING"
 
     @classmethod
     def from_dict(cls, data: dict) -> "Delivery":
@@ -37,6 +38,7 @@ class Delivery:
             polo=data.get("polo", None),
             data_limite=handle_date(data.get("data_limite", None)),
             data_de_atendimento=handle_date(data.get("data_de_atendimento", None)),
+            status=data.get("status", "PENDING")
         )
 
     def to_dict(self) -> dict:
@@ -51,6 +53,7 @@ class DeliveryDomainCreate:
     id_polo: int
     data_limite: datetime
     data_de_atendimento: datetime
+    status: str
     id: int | None = None
 
     def to_dict(self) -> dict:
@@ -63,6 +66,7 @@ class DeliveryDomainUpdate:
     id: int
     data_limite: datetime
     data_de_atendimento: datetime
+    status: str
 
     @classmethod
     def from_dict(cls, data: dict) -> "DeliveryDomainUpdate":
@@ -70,6 +74,7 @@ class DeliveryDomainUpdate:
             id=int(data.get("id_atendimento", -999)),
             data_limite=handle_date(data.get("data_limite", None)),
             data_de_atendimento=handle_date(data.get("data_de_atendimento", None)),
+            status=data.get("status", None)
         )
 
     def to_dict(self) -> dict:
